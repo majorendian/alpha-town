@@ -58,5 +58,22 @@ class InteractionControls(object):
                 interactible, obj = self.level.check_interactible(self.player.x+1, self.player.y)
                 if interactible:
                     obj.interact()
-                self.emitter.emit("interaction_finished")
+                self.emitter.emit("interaction_finished", obj=obj)
 
+
+class ConversationControlsEmitter(Dispatcher):
+    _events_ = ["confirm"]
+
+class ConversationControls(object):
+    def __init__(self):
+        self.emitter = ConversationControlsEmitter()
+        
+    def handlekeys(self):
+        for event in tcod.event.wait():
+            if event.type == "QUIT":
+                raise SystemExit()
+            elif event.type == "KEYDOWN":
+                if event.scancode == tcod.event.SCANCODE_SPACE:
+                    print("space pressed")
+                    self.emitter.emit("confirm")
+                    

@@ -10,6 +10,7 @@ from globs import *
 import control
 import level
 from enum import Enum, auto
+import menu
 
 gRootConsole = None # just so that we can reference it inside the classes
 # Basic states of the game
@@ -46,20 +47,40 @@ class GameState:
 
             self.controls.emitter.bind(interaction=self.on_interaction)
             self.interaction_controls.emitter.bind(interaction_finished=self.on_interaction_finished)
+            self.conversation_controls = control.ConversationControls()
+
+            #we need a handle for the text window to be persitent or else the function will not be called so we need this textwindow variable
+            self.text_window = None
 
         def on_interaction(self):
             self.interaction_state = GameState.Game.ControlState.INTERACTION
 
-        def on_interaction_finished(self):
+        def on_interaction_finished(self, *args, **kwargs):
+            if kwargs["obj"]:
+                obj = kwargs["obj"]
+                print("start conversation state with", obj)
+                self.interaction_state = GameState.Game.ControlState.CONVERSATION
+                self.text_window = menu.TextWindow(gRootConsole, gWidth, 10, "Test npc")
+                self.text_window.set_pages(["Some text here", "Some text there", "Multiple pages"])
+                self.text_window.on_confirm()
+                self.conversation_controls.emitter.bind(confirm=self.text_window.on_confirm)
+                self.text_window.emitter.bind(close=self.on_text_window_close)
+            else:
+                self.interaction_state = GameState.Game.ControlState.ROAM
+
+        def on_text_window_close(self):
             self.interaction_state = GameState.Game.ControlState.ROAM
+            self.text_window = None # free up the window, basically deleting it
 
         def run(self):
-            gRootConsole.clear()
-            self.r.render(self.lm.mapobj, self.lm.level.objects)
             if self.interaction_state == GameState.Game.ControlState.INTERACTION:
                 self.interaction_controls.handlekeys()
             elif self.interaction_state == GameState.Game.ControlState.ROAM:
+                gRootConsole.clear()
+                self.r.render(self.lm.mapobj, self.lm.level.objects)
                 self.controls.handlekeys()
+            elif self.interaction_state == GameState.Game.ControlState.CONVERSATION:
+                self.conversation_controls.handlekeys()
 
         def update(self):
             if self.interaction_state == GameState.Game.ControlState.ROAM:
