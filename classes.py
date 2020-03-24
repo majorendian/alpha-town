@@ -29,15 +29,40 @@ class Entity(Universal):
         self.x = x
         self.y = y
 
+class Furniture(Entity):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.text = ["A Piece of furniture"]
+        self.name = "Furniture"
+        self.walkable = False
+        self.interactible = True
+
+
+class WoodenChair(Furniture):
+    def __init__(self,x ,y):
+        super().__init__(x, y)
+        self.name = "Wooden chair"
+        self.symbol = "h"
+        self.color = (129,71,4)
+        self.text = ["A simple wooden chair. Comfortable to sit on"]
+
+class WoodenTable(Furniture):
+    def __init__(self,x ,y):
+        super().__init__(x, y)
+        self.name = "Wooden table"
+        self.color = (129,71,4)
+        self.symbol = "T"
+        self.text = ["A wooden table"]
+
+
 class NPC(Entity):
     def __init__(self, x, y):
         super().__init__(x,y)
         self.symbol = "@"
         self.walkable = False
         self.interactible = True
-
-    def interact(self):
-        print("npc says hello")
+        self.text = ["Default npc text"]
+        self.name = "Default npc"
 
     def update(self, level):
         #NOTE we need to check for collisions
@@ -73,22 +98,3 @@ class Floor(Tile):
         self.walkable = True
         self.symbol = "."
         self.color = (50,50,50)
-
-
-class MovingBackroundStar(Tile):
-    def __init__(self, x, y):
-        super().__init__(x, y)
-        self.walkable = False
-        self.symbol = "."
-        self.cupdate = 0
-        self.update_freq = 2
-
-    def draw(self):
-        if self.update_freq == self.cupdate:
-            self.y += 1
-            if self.y >= 40:
-                self.y = 0
-            self.cupdate = 0
-        else:
-            self.cupdate += 1
-                

@@ -60,8 +60,8 @@ class GameState:
                 obj = kwargs["obj"]
                 print("start conversation state with", obj)
                 self.interaction_state = GameState.Game.ControlState.CONVERSATION
-                self.text_window = menu.TextWindow(gRootConsole, gWidth, 10, "Test npc")
-                self.text_window.set_pages(["Some text here", "Some text there", "Multiple pages"])
+                self.text_window = menu.TextWindow(gRootConsole, gWidth, 10, obj.name)
+                self.text_window.set_pages(obj.text)
                 self.text_window.on_confirm()
                 self.conversation_controls.emitter.bind(confirm=self.text_window.on_confirm)
                 self.text_window.emitter.bind(close=self.on_text_window_close)

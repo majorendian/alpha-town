@@ -10,6 +10,7 @@ class TextWindow(object):
         self.h = height
         self.title = title
         self.pages = []
+        self.pindex = 0
         self.emitter = TextWindowEmitter()
 
     def set_pages(self, l):
@@ -23,7 +24,9 @@ class TextWindow(object):
         self.console.print_box(x=1, y=1, width=self.w-1, height=self.h-1, string=text)
 
     def on_confirm(self):
-        if len(self.pages) > 0:
-            self.print_text(self.pages.pop(0))
+        if len(self.pages) > self.pindex:
+            self.print_text(self.pages[self.pindex])
+            self.pindex += 1
         else:
+            self.pindex = 0
             self.emitter.emit("close")

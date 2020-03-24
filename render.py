@@ -37,6 +37,10 @@ class Map(object):
                     t = classes.Wall(x,y)
                 elif cel == ".":
                     t = classes.Floor(x,y)
+                elif cel == "h":
+                    t = classes.WoodenChair(x,y)
+                elif cel == "T":
+                    t = classes.WoodenTable(x,y)
                 newr.append(t)
                 x += 1
             newmap.append(newr)

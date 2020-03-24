@@ -55,9 +55,15 @@ class InteractionControls(object):
             if event.type == "QUIT":
                 raise SystemExit()
             elif event.type == "KEYDOWN":
-                interactible, obj = self.level.check_interactible(self.player.x+1, self.player.y)
-                if interactible:
-                    obj.interact()
+                interactible, obj = (None, None)
+                if event.scancode == tcod.event.SCANCODE_RIGHT:
+                    interactible, obj = self.level.check_interactible(self.player.x+1, self.player.y)
+                elif event.scancode == tcod.event.SCANCODE_LEFT:
+                    interactible, obj = self.level.check_interactible(self.player.x-1, self.player.y)
+                elif event.scancode == tcod.event.SCANCODE_UP:
+                    interactible, obj = self.level.check_interactible(self.player.x, self.player.y-1)
+                elif event.scancode == tcod.event.SCANCODE_DOWN:
+                    interactible, obj = self.level.check_interactible(self.player.x, self.player.y+1)
                 self.emitter.emit("interaction_finished", obj=obj)
 
 

@@ -21,6 +21,7 @@ class Level(object):
         obj = None
         if self.mapobj.m[y][x].interactible:
             interactible = True
+            obj = self.mapobj.m[y][x]
         for o in self.objects:
             if o.x == x and o.y == y and not o.interactible:
                 interactible = False
