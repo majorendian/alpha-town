@@ -4,7 +4,7 @@ import globs
 from pydispatch import Dispatcher
 
 class MainControlsEmitter(Dispatcher):
-    _events_ = ["interaction"]
+    _events_ = ["interaction", "inventory_open"]
 
 class MainControls(object):
     def __init__(self, player, renderer, level):
@@ -31,8 +31,10 @@ class MainControls(object):
                 elif event.scancode == tcod.event.SCANCODE_RIGHT:
                     if self.level.check_walkable(self.player.x+1, self.player.y):
                         self.player.x += 1
-                elif event.scancode == tcod.event.SCANCODE_I:
+                elif event.scancode == tcod.event.SCANCODE_E:
                     self.emitter.emit("interaction")
+                elif event.scancode == tcod.event.SCANCODE_I:
+                    self.emitter.emit("inventory_open")
                     #readjust camera
                 if self.player.x >= globs.gWidth/2:
                     if self.r.start_x+self.r.w < self.level.mapobj.w or abs(self.player.x - globs.gWidth/2) <= 40:
@@ -83,3 +85,25 @@ class ConversationControls(object):
                     print("space pressed")
                     self.emitter.emit("confirm")
                     
+
+
+class InventoryControlsEmitter(Dispatcher):
+    _events_ = ["move_up", "move_down", "select", "cancel"]
+
+class InventoryControls(object):
+    def __init__(self):
+        self.emitter = InventoryControlsEmitter()
+
+    def handlekeys(self):
+        for event in tcod.event.wait():
+            if event.type == "QUIT":
+                raise SystemExit()
+            elif event.type == "KEYDOWN":
+                if event.scancode == tcod.event.SCANCODE_DOWN:
+                    self.emitter.emit("move_down")
+                elif event.scancode == tcod.event.SCANCODE_UP:
+                    self.emitter.emit("move_up")
+                elif event.scancode == tcod.event.SCANCODE_I:
+                    self.emitter.emit("cancel")
+                elif event.scancode == tcod.event.SCANCODE_SPACE:
+                    self.emitter.emit("select")

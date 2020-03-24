@@ -42,15 +42,25 @@ class GameState:
             self.lm.load_level("somelevel.json")
             self.lm.level.objects.append(self.player)
             self.interaction_state = GameState.Game.ControlState.ROAM
+
             self.controls = control.MainControls(self.player, self.r, self.lm.level)
             self.interaction_controls = control.InteractionControls(self.player, self.lm.level)
-
             self.controls.emitter.bind(interaction=self.on_interaction)
+            self.controls.emitter.bind(inventory_open=self.on_inventory_open)
+            
             self.interaction_controls.emitter.bind(interaction_finished=self.on_interaction_finished)
             self.conversation_controls = control.ConversationControls()
 
             #we need a handle for the text window to be persitent or else the function will not be called so we need this textwindow variable
             self.text_window = None
+
+            #inventory
+            self.inventory_controls = control.InventoryControls()
+            self.inventory = menu.Inventory(gRootConsole, gWidth, gHeight)
+            self.inventory_controls.emitter.bind(move_down=self.inventory.move_down)
+            self.inventory_controls.emitter.bind(move_up=self.inventory.move_up)
+            self.inventory_controls.emitter.bind(select=self.inventory.select)
+            self.inventory_controls.emitter.bind(cancel=self.on_inventory_close)
 
         def on_interaction(self):
             self.interaction_state = GameState.Game.ControlState.INTERACTION
@@ -72,6 +82,13 @@ class GameState:
             self.interaction_state = GameState.Game.ControlState.ROAM
             self.text_window = None # free up the window, basically deleting it
 
+        def on_inventory_open(self):
+            self.interaction_state = GameState.Game.ControlState.INVENTORY
+            self.inventory.render_items()
+
+        def on_inventory_close(self):
+            self.interaction_state = GameState.Game.ControlState.ROAM
+
         def run(self):
             if self.interaction_state == GameState.Game.ControlState.INTERACTION:
                 self.interaction_controls.handlekeys()
@@ -81,6 +98,8 @@ class GameState:
                 self.controls.handlekeys()
             elif self.interaction_state == GameState.Game.ControlState.CONVERSATION:
                 self.conversation_controls.handlekeys()
+            elif self.interaction_state == GameState.Game.ControlState.INVENTORY:
+                self.inventory_controls.handlekeys()
 
         def update(self):
             if self.interaction_state == GameState.Game.ControlState.ROAM:
