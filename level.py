@@ -1,6 +1,7 @@
 import render
 import json
 import classes
+import farm
 
 class Level(object):
     def __init__(self, mapobj, objects):
@@ -76,6 +77,9 @@ class LevelManager(object):
             elif obj["tile"] == "Player":
                 tile = classes.Player(obj["x"], obj["y"])
                 self.player = tile
+            elif obj["tile"] == "Potato":
+                print("potato found")
+                tile = farm.Potato(obj["x"], obj["y"])
             else:
                 tile.color = (255,0,0)
             if load:

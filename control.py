@@ -37,14 +37,6 @@ class MainControls(object):
                     self.emitter.emit("inventory_open")
                 elif event.scancode == tcod.event.SCANCODE_ESCAPE:
                     self.emitter.emit("in_game_menu")
-                    #readjust camera
-                # if self.player.x >= globs.gWidth/2:
-                #     if self.r.start_x+self.r.w < self.level.mapobj.w or abs(self.player.x - globs.gWidth/2) <= self.level.mapobj.w - self.player.x:
-                #         self.r.start_x = int(abs(self.player.x - globs.gWidth/2))
-                # if self.player.y >= globs.gHeight/2:
-                #     if self.r.start_y+self.r.h < self.level.mapobj.h or abs(self.player.y - globs.gHeight/2) <= 40:
-                #         self.r.start_y = int(abs(self.player.y - globs.gHeight/2))
-                #170 256
 
 class InteractionControlsEmitter(Dispatcher):
     _events_ = ["interaction_finished"]
