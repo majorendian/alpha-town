@@ -4,7 +4,7 @@ import globs
 from pydispatch import Dispatcher
 
 class MainControlsEmitter(Dispatcher):
-    _events_ = ["interaction", "inventory_open"]
+    _events_ = ["interaction", "inventory_open", "in_game_menu"]
 
 class MainControls(object):
     def __init__(self, player, renderer, level):
@@ -35,13 +35,16 @@ class MainControls(object):
                     self.emitter.emit("interaction")
                 elif event.scancode == tcod.event.SCANCODE_I:
                     self.emitter.emit("inventory_open")
+                elif event.scancode == tcod.event.SCANCODE_ESCAPE:
+                    self.emitter.emit("in_game_menu")
                     #readjust camera
-                if self.player.x >= globs.gWidth/2:
-                    if self.r.start_x+self.r.w < self.level.mapobj.w or abs(self.player.x - globs.gWidth/2) <= 40:
-                        self.r.start_x = int(abs(self.player.x - globs.gWidth/2))
-                if self.player.y >= globs.gHeight/2:
-                    if self.r.start_y+self.r.h < self.level.mapobj.h or abs(self.player.y - globs.gHeight/2) <= 40:
-                        self.r.start_y = int(abs(self.player.y - globs.gHeight/2))
+                # if self.player.x >= globs.gWidth/2:
+                #     if self.r.start_x+self.r.w < self.level.mapobj.w or abs(self.player.x - globs.gWidth/2) <= self.level.mapobj.w - self.player.x:
+                #         self.r.start_x = int(abs(self.player.x - globs.gWidth/2))
+                # if self.player.y >= globs.gHeight/2:
+                #     if self.r.start_y+self.r.h < self.level.mapobj.h or abs(self.player.y - globs.gHeight/2) <= 40:
+                #         self.r.start_y = int(abs(self.player.y - globs.gHeight/2))
+                #170 256
 
 class InteractionControlsEmitter(Dispatcher):
     _events_ = ["interaction_finished"]
@@ -87,12 +90,12 @@ class ConversationControls(object):
                     
 
 
-class InventoryControlsEmitter(Dispatcher):
+class MenuControlsEmitter(Dispatcher):
     _events_ = ["move_up", "move_down", "select", "cancel"]
 
-class InventoryControls(object):
+class MenuControls(object):
     def __init__(self):
-        self.emitter = InventoryControlsEmitter()
+        self.emitter = MenuControlsEmitter()
 
     def handlekeys(self):
         for event in tcod.event.wait():
@@ -103,7 +106,14 @@ class InventoryControls(object):
                     self.emitter.emit("move_down")
                 elif event.scancode == tcod.event.SCANCODE_UP:
                     self.emitter.emit("move_up")
-                elif event.scancode == tcod.event.SCANCODE_I:
+                elif event.scancode == tcod.event.SCANCODE_I or event.scancode == tcod.event.SCANCODE_ESCAPE:
                     self.emitter.emit("cancel")
                 elif event.scancode == tcod.event.SCANCODE_SPACE:
                     self.emitter.emit("select")
+
+class InventoryControlsEmitter(MenuControlsEmitter):
+    pass
+
+class InventoryControls(MenuControls):
+    def __init__(self):
+        self.emitter = InventoryControlsEmitter()

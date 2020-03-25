@@ -9,6 +9,14 @@ class Universal(object):
         self.walkable = True
         self.interactible = False
 
+    def save_json(self):
+        return {"x": self.x, "y": self.y, "tile": type(self).__name__}
+
+    def load_json(self, d):
+        self.x = d["x"]
+        self.y = d["y"]
+        print("loaded obj",self)
+
     def draw(self):
         pass
 
@@ -61,11 +69,10 @@ class NPC(Entity):
         self.symbol = "@"
         self.walkable = False
         self.interactible = True
-        self.text = ["Default npc text"]
+        self.text = [";+ľščťžýáíé=äúň§-.,ô)!/(_?:/"]
         self.name = "Default npc"
 
     def update(self, level):
-        #NOTE we need to check for collisions
         randx = random.randrange(3)-1
         randy = random.randrange(3)-1
         nextx = self.x + randx
@@ -98,3 +105,9 @@ class Floor(Tile):
         self.walkable = True
         self.symbol = "."
         self.color = (50,50,50)
+
+class Grass(Floor):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.symbol = ","
+        self.color = (50,255,50)

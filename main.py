@@ -31,22 +31,28 @@ class GameState:
         class ControlState(Enum):
             ROAM = auto()
             INTERACTION = auto()
-            CONVERSATION = auto()
+            DIALOGUE = auto()
             INVENTORY = auto()
+            MENU = auto()
 
         def __init__(self, fsm):
             super().__init__(fsm)
             self.r = render.Renderer(gRootConsole, gWidth, gHeight)
-            self.player = classes.Player(0,0)
             self.lm = level.LevelManager()
-            self.lm.load_level("somelevel.json")
-            self.lm.level.objects.append(self.player)
+            try:
+                self.lm.load_save("save.json")
+                self.player = self.lm.player
+            except IOError:
+                self.lm.load_level("basic_starter_level.json")
+                self.player = self.lm.player
+                self.lm.level.objects.append(self.player)
             self.interaction_state = GameState.Game.ControlState.ROAM
 
             self.controls = control.MainControls(self.player, self.r, self.lm.level)
             self.interaction_controls = control.InteractionControls(self.player, self.lm.level)
             self.controls.emitter.bind(interaction=self.on_interaction)
             self.controls.emitter.bind(inventory_open=self.on_inventory_open)
+            self.controls.emitter.bind(in_game_menu=self.on_in_game_menu_open)
             
             self.interaction_controls.emitter.bind(interaction_finished=self.on_interaction_finished)
             self.conversation_controls = control.ConversationControls()
@@ -62,6 +68,10 @@ class GameState:
             self.inventory_controls.emitter.bind(select=self.inventory.select)
             self.inventory_controls.emitter.bind(cancel=self.on_inventory_close)
 
+            #in game menu
+            self.menu_controls = control.MenuControls()
+            self.in_game_menu = None # needs to be none just like for the text window
+
         def on_interaction(self):
             self.interaction_state = GameState.Game.ControlState.INTERACTION
 
@@ -69,7 +79,7 @@ class GameState:
             if kwargs["obj"]:
                 obj = kwargs["obj"]
                 print("start conversation state with", obj)
-                self.interaction_state = GameState.Game.ControlState.CONVERSATION
+                self.interaction_state = GameState.Game.ControlState.DIALOGUE
                 self.text_window = menu.TextWindow(gRootConsole, gWidth, 10, obj.name)
                 self.text_window.set_pages(obj.text)
                 self.text_window.on_confirm()
@@ -82,6 +92,30 @@ class GameState:
             self.interaction_state = GameState.Game.ControlState.ROAM
             self.text_window = None # free up the window, basically deleting it
 
+        def on_in_game_menu_open(self):
+            def __save_game_item__():
+                self.lm.save_level("save.json")
+                self.interaction_state = GameState.Game.ControlState.DIALOGUE
+                self.text_window = menu.TextWindow(gRootConsole, gWidth, 10, "Save progress")
+                self.text_window.set_pages(["Game saved"])
+                self.text_window.on_confirm()
+                self.conversation_controls.emitter.bind(confirm=self.text_window.on_confirm)
+                self.text_window.emitter.bind(close=self.on_text_window_close)
+            def __quit_item__():
+                raise SystemExit()
+            self.in_game_menu = menu.Menu(gRootConsole, gWidth, gHeight, [menu.MenuItem("Save Game", __save_game_item__),
+                                                                          menu.MenuItem("Quit", __quit_item__)])
+            self.menu_controls.emitter.bind(move_down=self.in_game_menu.move_down)
+            self.menu_controls.emitter.bind(move_up=self.in_game_menu.move_up)
+            self.menu_controls.emitter.bind(select=self.in_game_menu.select)
+            self.menu_controls.emitter.bind(cancel=self.on_in_game_menu_close)
+            self.interaction_state = GameState.Game.ControlState.MENU
+            self.in_game_menu.render_items()
+
+        def on_in_game_menu_close(self):
+            self.interaction_state = GameState.Game.ControlState.ROAM
+            self.in_game_menu = None
+
         def on_inventory_open(self):
             self.interaction_state = GameState.Game.ControlState.INVENTORY
             self.inventory.render_items()
@@ -90,16 +124,28 @@ class GameState:
             self.interaction_state = GameState.Game.ControlState.ROAM
 
         def run(self):
+
+            # readjust camera immediatelly after load, before render
+            if self.player.x >= gWidth/2:
+                if abs(self.player.x - gWidth/2) <= self.lm.level.mapobj.w - gWidth:
+                    self.r.start_x = int(abs(self.player.x - gWidth/2))
+            if self.player.y >= gHeight/2:
+                if abs(self.player.y - gHeight/2) <= self.lm.level.mapobj.h - gHeight:
+                    self.r.start_y = int(abs(self.player.y - gHeight/2))
+
             if self.interaction_state == GameState.Game.ControlState.INTERACTION:
                 self.interaction_controls.handlekeys()
             elif self.interaction_state == GameState.Game.ControlState.ROAM:
                 gRootConsole.clear()
                 self.r.render(self.lm.mapobj, self.lm.level.objects)
                 self.controls.handlekeys()
-            elif self.interaction_state == GameState.Game.ControlState.CONVERSATION:
+            elif self.interaction_state == GameState.Game.ControlState.DIALOGUE:
                 self.conversation_controls.handlekeys()
+            elif self.interaction_state == GameState.Game.ControlState.MENU:
+                self.menu_controls.handlekeys()
             elif self.interaction_state == GameState.Game.ControlState.INVENTORY:
                 self.inventory_controls.handlekeys()
+
 
         def update(self):
             if self.interaction_state == GameState.Game.ControlState.ROAM:

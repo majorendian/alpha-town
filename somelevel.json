@@ -83,12 +83,12 @@
    ],
    "objects" : [
       {
-          "type" : "npc",
+          "tile" : "NPC",
 	  "y" : 0,
 	  "x" : 0
       },
        {
-	   "type" : "npc",
+	   "tile" : "NPC",
 	   "y" : 20,
 	   "x" : 20
       }

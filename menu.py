@@ -32,26 +32,68 @@ class TextWindow(object):
             self.pindex = 0
             self.emitter.emit("close")
 
-class Inventory(object):
-    def __init__(self, root_console, width, height):
+class MenuItem(object):
+    def __init__(self, name, func):
+        self.name = name
+        self.func = func
+
+    def execute(self):
+        self.func()
+
+class Menu(object):
+    def __init__(self, root_console, width, height, items=[]):
         self.console = root_console
-        self.slots = 20
-        self.items = [item.Item(), item.Item()]
+        self.items = items
+        self.cursor_symbol = ">"
+        self.cursor_index = 0
         self.w = width
         self.h = height
-        self.cursor_index = 0
-        # self.cursor_symbol = "▶" 
-        self.cursor_symbol = ">" 
+        self.title = "Menu"
 
     def draw_frame(self):
-        self.console.draw_frame(x=0, y=int(self.h/4), width=self.w, height=self.slots, title="Inventory", fg=(255,255,255), bg=(0,0,0))
+        print("item length", len(self.items))
+        self.console.draw_frame(x=0, y=int(self.h/4), width=self.w, height=len(self.items)+2, title=self.title, fg=(255,255,255), bg=(0,0,0))
 
     def render_items(self):
         row = 0
         self.draw_frame()
         for item in self.items:
             if self.cursor_index == row:
-                self.console.print(x=1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name)
+                self.console.print(x=1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name, fg=(20,20,255))
+            else:
+                self.console.print(x=1, y=int(self.h/4)+1+row, string=" " + item.name)
+            row += 1
+
+    def move_up(self):
+        if self.cursor_index > 0:
+            self.cursor_index -= 1
+        self.render_items()
+
+    def move_down(self):
+        if self.cursor_index+1 < len(self.items):
+            self.cursor_index += 1
+        self.render_items()
+
+    def select(self):
+        item = self.items[self.cursor_index]
+        print("selected item:",item)
+        item.execute()
+
+class Inventory(Menu):
+    def __init__(self, root_console, width, height):
+        super().__init__(root_console, width, height, [])
+        self.slots = 20
+        self.items = [item.Item(), item.Item()]
+
+    def draw_frame(self):
+        self.console.draw_frame(x=0, y=int(self.h/4), width=self.w, height=self.slots, title=self.title, fg=(255,255,255), bg=(0,0,0))
+
+    def render_items(self):
+        row = 0
+        self.draw_frame()
+        for item in self.items:
+            if self.cursor_index == row:
+                self.console.print(x=1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name, fg=(20,20,255))
             else:
                 self.console.print(x=1, y=int(self.h/4)+1+row, string=" " + item.name)
             row += 1

@@ -41,6 +41,8 @@ class Map(object):
                     t = classes.WoodenChair(x,y)
                 elif cel == "T":
                     t = classes.WoodenTable(x,y)
+                elif cel == ",":
+                    t = classes.Grass(x, y)
                 newr.append(t)
                 x += 1
             newmap.append(newr)
