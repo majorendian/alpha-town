@@ -11,6 +11,7 @@ import control
 import level
 from enum import Enum, auto
 import menu
+import item
 
 gRootConsole = None # just so that we can reference it inside the classes
 # Basic states of the game
@@ -34,6 +35,7 @@ class GameState:
             DIALOGUE = auto()
             INVENTORY = auto()
             MENU = auto()
+            TOOL = auto()
 
         def __init__(self, fsm):
             super().__init__(fsm)
@@ -68,9 +70,33 @@ class GameState:
             self.inventory_controls.emitter.bind(select=self.inventory.select)
             self.inventory_controls.emitter.bind(cancel=self.on_inventory_close)
 
+            #tools
+            self.tool_controls = control.ToolControls(self.player, self.lm.level)
+            self.tool_controls.emitter.bind(direction=self.on_tool_use_direction)
+
             #in game menu
             self.menu_controls = control.MenuControls()
             self.in_game_menu = None # needs to be none just like for the text window
+
+            #global events
+            self.tool_handler = item.ToolHandler(self.player, self.lm.level)
+            # gEventHandler.bind("inventory_item_close", self.on_inventory_close)
+            gEventHandler.bind("use_tool", self.on_use_tool)
+
+        def on_use_tool(self, tool=None):
+            print("use_tool")
+            if tool:
+                self.on_inventory_close()
+                self.render()
+                self.tool_handler.current_tool = tool # set the tool which is being handeled
+                self.interaction_state = GameState.Game.ControlState.TOOL
+            elif tool == None and self.tool_handler.current_tool:
+                self.interaction_state = GameState.Game.ControlState.TOOL
+
+        def on_tool_use_direction(self, data):
+            print("tool used in vector:", data)
+            self.tool_handler.use_tool(data)
+            self.interaction_state = GameState.Game.ControlState.ROAM
 
         def on_interaction(self):
             self.interaction_state = GameState.Game.ControlState.INTERACTION
@@ -136,8 +162,7 @@ class GameState:
             if self.interaction_state == GameState.Game.ControlState.INTERACTION:
                 self.interaction_controls.handlekeys()
             elif self.interaction_state == GameState.Game.ControlState.ROAM:
-                gRootConsole.clear()
-                self.r.render(self.lm.mapobj, self.lm.level.objects)
+                self.render()
                 self.controls.handlekeys()
             elif self.interaction_state == GameState.Game.ControlState.DIALOGUE:
                 self.conversation_controls.handlekeys()
@@ -145,12 +170,22 @@ class GameState:
                 self.menu_controls.handlekeys()
             elif self.interaction_state == GameState.Game.ControlState.INVENTORY:
                 self.inventory_controls.handlekeys()
+            elif self.interaction_state == GameState.Game.ControlState.TOOL:
+                self.tool_controls.handlekeys()
 
+        def render(self):
+            gRootConsole.clear()
+            self.r.render(self.lm.mapobj, self.lm.level.objects)
 
         def update(self):
             if self.interaction_state == GameState.Game.ControlState.ROAM:
                 for o in self.lm.level.objects:
                     o.update(self.lm.level)
+
+        def draw(self):
+            if self.interaction_state == GameState.Game.ControlState.ROAM:
+                for o in self.lm.level.objects:
+                    o.draw()
 
     class GameOver(state.State):
         def run(self):
@@ -199,3 +234,5 @@ while True:
         time_cumul = 0
         if callable(getattr(gFSM.get_state(), "update", None)):
             gFSM.get_state().update()
+    if callable(getattr(gFSM.get_state(), "draw", None)):
+        gFSM.get_state().draw()

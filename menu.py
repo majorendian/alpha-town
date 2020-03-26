@@ -1,5 +1,6 @@
 from pydispatch import Dispatcher
 import item
+import globs
 
 class TextWindowEmitter(Dispatcher):
     _events_ = ["close"]
@@ -83,7 +84,7 @@ class Inventory(Menu):
     def __init__(self, root_console, width, height):
         super().__init__(root_console, width, height, [])
         self.slots = 20
-        self.items = [item.Item(), item.Item()]
+        self.items = [item.Item(), item.WateringBucket()]
 
     def draw_frame(self):
         self.console.draw_frame(x=0, y=int(self.h/4), width=self.w, height=self.slots, title=self.title, fg=(255,255,255), bg=(0,0,0))
@@ -112,5 +113,6 @@ class Inventory(Menu):
     def select(self):
         item = self.items[self.cursor_index]
         item.use()
+        # globs.gEventHandler.emit("inventory_item_close")
 
 

@@ -37,6 +37,8 @@ class MainControls(object):
                     self.emitter.emit("inventory_open")
                 elif event.scancode == tcod.event.SCANCODE_ESCAPE:
                     self.emitter.emit("in_game_menu")
+                elif event.scancode == tcod.event.SCANCODE_U:
+                    globs.gEventHandler.emit("use_tool")
 
 class InteractionControlsEmitter(Dispatcher):
     _events_ = ["interaction_finished"]
@@ -62,6 +64,31 @@ class InteractionControls(object):
                 elif event.scancode == tcod.event.SCANCODE_DOWN:
                     interactible, obj = self.level.check_interactible(self.player.x, self.player.y+1)
                 self.emitter.emit("interaction_finished", obj=obj)
+
+class ToolControlsEmitter(Dispatcher):
+    _events_ = ["direction"]
+
+class ToolControls(object):
+    def __init__(self, player, level):
+        self.level = level
+        self.player = player
+        self.emitter = ToolControlsEmitter()
+
+    def handlekeys(self):
+        print("handling tool keys")
+        for event in tcod.event.wait():
+            if event.type == "QUIT":
+                raise SystemExit()
+            elif event.type == "KEYDOWN":
+                if event.scancode == tcod.event.SCANCODE_LEFT:
+                    self.emitter.emit("direction", data=(-1,0))
+                elif event.scancode == tcod.event.SCANCODE_RIGHT:
+                    self.emitter.emit("direction", data=(1,0))
+                elif event.scancode == tcod.event.SCANCODE_UP:
+                    self.emitter.emit("direction", data=(0,-1))
+                elif event.scancode == tcod.event.SCANCODE_DOWN:
+                    self.emitter.emit("direction", data=(0,1))
+                
 
 
 class ConversationControlsEmitter(Dispatcher):

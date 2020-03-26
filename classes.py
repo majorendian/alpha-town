@@ -1,4 +1,5 @@
 import random
+import globs
 
 class Universal(object):
     def __init__(self):
@@ -69,7 +70,7 @@ class NPC(Entity):
         self.symbol = "@"
         self.walkable = False
         self.interactible = True
-        self.text = [";+ľščťžýáíé=äúň§-.,ô)!/(_?:/"]
+        self.text = ["Default npc text"]
         self.name = "Default npc"
 
     def update(self, level):
@@ -90,9 +91,31 @@ class Tile(Universal):
         self.x = x
         self.y = y
 
-    def draw():
+    def draw(self):
         pass
 
+class WaterDroplet(Tile):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.ttl = 1
+        self.accum = 0
+        self.symbol = "~"
+        self.color = (20,20,250)
+
+    def draw(self):
+        self.accum += 1
+        if self.accum % 4 == 0:
+            self.symbol = "-"
+        else:
+            self.symbol = "~"
+            
+    def update(self, level):
+        if self.ttl <= 0:
+            globs.gEventHandler.emit("object_destroy", self)
+        self.ttl -= 1
+        
+
+        
 class Wall(Tile):
     def __init__(self, x, y):
         super().__init__(x, y)

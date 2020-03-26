@@ -2,6 +2,7 @@ import render
 import json
 import classes
 import farm
+import globs
 
 class Level(object):
     def __init__(self, mapobj, objects):
@@ -31,12 +32,28 @@ class Level(object):
                 interactible = True
         return (interactible, obj)
 
+    def objects_at(self, x, y):
+        objlist = []
+        for obj in self.objects:
+            if obj.x == x and obj.y == y:
+                objlist.append(obj)
+        return objlist
+
 class LevelManager(object):
     def __init__(self):
         self.mapobj = render.Map()
         self.level = Level(self.mapobj, [])
         self.filename = None
         self.player = None
+        globs.gEventHandler.bind("object_destroy", self.destroy_object)
+        globs.gEventHandler.bind("add_object", self.add_object)
+
+    def add_object(self, obj):
+        print("adding object",obj)
+        self.level.objects.append(obj)
+
+    def destroy_object(self, obj):
+        self.level.objects.remove(obj) # this should remove the water droplet
 
     def load_level(self, level_json):
         self.filename = level_json
