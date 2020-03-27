@@ -57,6 +57,7 @@ class GameState:
             self.controls.emitter.bind(interaction=self.on_interaction)
             self.controls.emitter.bind(inventory_open=self.on_inventory_open)
             self.controls.emitter.bind(in_game_menu=self.on_in_game_menu_open)
+            self.controls.emitter.bind(pickup_item=self.on_item_pickup)
             
             self.interaction_controls.emitter.bind(interaction_finished=self.on_interaction_finished)
             self.conversation_controls = control.ConversationControls()
@@ -70,6 +71,7 @@ class GameState:
             self.inventory_controls.emitter.bind(move_up=self.inventory.move_up)
             self.inventory_controls.emitter.bind(select=self.inventory.select)
             self.inventory_controls.emitter.bind(cancel=self.on_inventory_close)
+            self.inventory_controls.emitter.bind(drop=self.inventory.drop_item)
 
             #tools
             self.tool_controls = control.ToolControls(self.player, self.lm.level)
@@ -83,6 +85,7 @@ class GameState:
             self.tool_handler = item.ToolHandler(self.player, self.lm.level)
             # gEventHandler.bind("inventory_item_close", self.on_inventory_close)
             gEventHandler.bind("use_tool", self.on_use_tool)
+            gEventHandler.bind("drop_item", self.on_drop_item)
 
         def on_use_tool(self, tool=None):
             print("use_tool")
@@ -93,6 +96,24 @@ class GameState:
                 self.interaction_state = GameState.Game.ControlState.TOOL
             elif tool == None and self.tool_handler.current_tool:
                 self.interaction_state = GameState.Game.ControlState.TOOL
+
+        def on_drop_item(self, item):
+            print("dropping item", item)
+            objects = self.lm.level.objects_at(self.player.x, self.player.y)
+            if len(objects) == 1 and isinstance(objects[0], classes.Player):
+                item.tile.x = self.player.x
+                item.tile.y = self.player.y
+                gEventHandler.emit("add_object", item.tile)
+            else:
+                self.show_message("Message", ["Cannot drop item, space occupied"])
+                self.inventory.items.append(item)
+
+        def on_item_pickup(self, obj):
+            # item is at player coord
+            item = obj.item()
+            self.inventory.items.append(item)
+            gEventHandler.emit("object_destroy", obj)
+            self.show_message("Message", [item.name + " picked up"])
 
         def on_tool_use_direction(self, data):
             print("tool used in vector:", data)
@@ -119,15 +140,19 @@ class GameState:
             self.interaction_state = GameState.Game.ControlState.ROAM
             self.text_window = None # free up the window, basically deleting it
 
+        def show_message(self, title, text_list):
+            self.interaction_state = GameState.Game.ControlState.DIALOGUE
+            self.text_window = menu.TextWindow(gRootConsole, gWidth, 10, title)
+            self.text_window.set_pages(text_list)
+            self.text_window.on_confirm()
+            self.conversation_controls.emitter.bind(confirm=self.text_window.on_confirm)
+            self.text_window.emitter.bind(close=self.on_text_window_close)
+            
+
         def on_in_game_menu_open(self):
             def __save_game_item__():
                 self.lm.save_level("save.json")
-                self.interaction_state = GameState.Game.ControlState.DIALOGUE
-                self.text_window = menu.TextWindow(gRootConsole, gWidth, 10, "Save progress")
-                self.text_window.set_pages(["Game saved"])
-                self.text_window.on_confirm()
-                self.conversation_controls.emitter.bind(confirm=self.text_window.on_confirm)
-                self.text_window.emitter.bind(close=self.on_text_window_close)
+                self.show_message("Save progress", ["Game saved"])
             def __quit_item__():
                 raise SystemExit()
             self.in_game_menu = menu.Menu(gRootConsole, gWidth, gHeight, [menu.MenuItem("Save Game", __save_game_item__),

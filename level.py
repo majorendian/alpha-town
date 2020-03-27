@@ -32,6 +32,11 @@ class Level(object):
                 obj = o
                 interactible = True
         return (interactible, obj)
+    def check_item(self, x, y):
+        objects = self.objects_at(x, y)
+        for obj in objects:
+            if obj.item:
+                return obj
 
     def objects_at(self, x, y):
         objlist = []
@@ -84,7 +89,7 @@ class LevelManager(object):
             with open(self.filename) as lf:
                 self.mapobj.set_map(json.load(lf)["map"])
             self.process_objects(d["objects"], True)
-            self.inventory = self.inventory.load_json(d["inventory"])
+            self.inventory.load_json(d["inventory"])
 
     def get_level(self):
         return self.level

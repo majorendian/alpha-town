@@ -8,12 +8,22 @@ class Item(object):
         self.name = "Default item"
         self.description = "Default item description"
         self.count = 1
+        self.tile = classes.Tile(0,0)
 
     def save_json(self):
         return {"module": self.__module__, "item": type(self).__name__, "count" : self.count}
 
     def use(self):
         print("item",self.name,"used")
+
+class ItemTile(classes.Tile):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.name = "Default item"
+        self.description = "Default item description"
+        self.count = 1
+        self.item = Item
+        self.symbol = "i"
 
 class ToolHandler(object):
     class Tools(Enum):
@@ -79,6 +89,14 @@ class WateringBucket(Tool):
         self.name = "Watering bucket"
         self.description = "Used to water crops"
         self.tool = ToolHandler.Tools.WATERING_BUCKET
+        self.tile = WateringBucketTile(0,0)
+
+class WateringBucketTile(ItemTile):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.symbol = "b"
+        self.color = (50,50,200)
+        self.item = WateringBucket
 
 class Shovel(Tool):
     def __init__(self):
@@ -86,6 +104,14 @@ class Shovel(Tool):
         self.name = "Shovel"
         self.description = "Used to dig into the ground"
         self.tool = ToolHandler.Tools.SHOVEL
+        self.tile = ShovelTile(0,0)
+
+class ShovelTile(ItemTile):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.symbol = "v"
+        self.color = (200,200,200)
+        self.item = Shovel
 
         
 class Spade(Tool):
@@ -94,7 +120,14 @@ class Spade(Tool):
         self.name = "Spade"
         self.description = "Used tild soil"
         self.tool = ToolHandler.Tools.SPADE
-    
+        self.tile = SpadeTile(0,0)
+
+class SpadeTile(ItemTile):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.symbol = "j"
+        self.color = (200,200,200)
+        self.item = Spade
 
 class Seeds(Item):
     def __init__(self):

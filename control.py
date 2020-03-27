@@ -4,7 +4,7 @@ import globs
 from pydispatch import Dispatcher
 
 class MainControlsEmitter(Dispatcher):
-    _events_ = ["interaction", "inventory_open", "in_game_menu"]
+    _events_ = ["interaction", "inventory_open", "in_game_menu", "pickup_item"]
 
 class MainControls(object):
     def __init__(self, player, renderer, level):
@@ -39,6 +39,10 @@ class MainControls(object):
                     self.emitter.emit("in_game_menu")
                 elif event.scancode == tcod.event.SCANCODE_U:
                     globs.gEventHandler.emit("use_tool")
+                elif event.scancode == tcod.event.SCANCODE_G:
+                    obj = self.level.check_item(self.player.x, self.player.y)
+                    if obj:
+                        self.emitter.emit("pickup_item", obj)
 
 class InteractionControlsEmitter(Dispatcher):
     _events_ = ["interaction_finished"]
@@ -131,8 +135,24 @@ class MenuControls(object):
                     self.emitter.emit("select")
 
 class InventoryControlsEmitter(MenuControlsEmitter):
-    pass
+    _events_ = ["move_down", "move_up", "cancel", "select", "drop"]
 
 class InventoryControls(MenuControls):
     def __init__(self):
         self.emitter = InventoryControlsEmitter()
+
+    def handlekeys(self):
+        for event in tcod.event.wait():
+            if event.type == "QUIT":
+                raise SystemExit()
+            elif event.type == "KEYDOWN":
+                if event.scancode == tcod.event.SCANCODE_DOWN:
+                    self.emitter.emit("move_down")
+                elif event.scancode == tcod.event.SCANCODE_UP:
+                    self.emitter.emit("move_up")
+                elif event.scancode == tcod.event.SCANCODE_I or event.scancode == tcod.event.SCANCODE_ESCAPE:
+                    self.emitter.emit("cancel")
+                elif event.scancode == tcod.event.SCANCODE_SPACE:
+                    self.emitter.emit("select")
+                elif event.scancode == tcod.event.SCANCODE_D:
+                    self.emitter.emit("drop")

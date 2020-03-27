@@ -136,6 +136,12 @@ class Inventory(Menu):
     def select(self):
         item = self.items[self.cursor_index]
         item.use()
-        # globs.gEventHandler.emit("inventory_item_close")
+
+
+    def drop_item(self):
+        item = self.items[self.cursor_index]
+        self.items.remove(item)
+        self.render_items()
+        globs.gEventHandler.emit("drop_item", item)
 
 
