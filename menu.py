@@ -99,9 +99,9 @@ class Inventory(Menu):
                 count_display = True
             if self.cursor_index == row:
                 if count_display:
-                    self.console.print(x=1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name, fg=(20,20,255))
-                else:
                     self.console.print(x=1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name + " ("+str(item.count)+")", fg=(20,20,255))
+                else:
+                    self.console.print(x=1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name, fg=(20,20,255))
                         
             else:
                 if count_display:
