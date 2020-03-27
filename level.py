@@ -3,6 +3,7 @@ import json
 import classes
 import farm
 import globs
+import sys
 
 class Level(object):
     def __init__(self, mapobj, objects):
@@ -45,12 +46,13 @@ class LevelManager(object):
         self.level = Level(self.mapobj, [])
         self.filename = None
         self.player = None
+        self.inventory = None
         globs.gEventHandler.bind("object_destroy", self.destroy_object)
         globs.gEventHandler.bind("add_object", self.add_object)
 
     def add_object(self, obj):
         print("adding object",obj)
-        self.level.objects.append(obj)
+        self.level.objects.insert(0, obj)
 
     def destroy_object(self, obj):
         self.level.objects.remove(obj) # this should remove the water droplet
@@ -69,6 +71,7 @@ class LevelManager(object):
         for obj in self.level.objects:
             objd = obj.save_json()
             d["objects"].append(objd)
+        d["inventory"] = self.inventory.save_json()
         with open(save_file, "w") as f:
             f.write(json.dumps(d))
 
@@ -81,6 +84,7 @@ class LevelManager(object):
             with open(self.filename) as lf:
                 self.mapobj.set_map(json.load(lf)["map"])
             self.process_objects(d["objects"], True)
+            self.inventory = self.inventory.load_json(d["inventory"])
 
     def get_level(self):
         return self.level
@@ -89,16 +93,12 @@ class LevelManager(object):
         objects = []
         for obj in json_objects:
             tile = classes.Tile(0,0)
-            if obj["tile"] == "NPC":
-                tile = classes.NPC(obj["x"], obj["y"])
-            elif obj["tile"] == "Player":
+            if obj["tile"] == "Player":
                 tile = classes.Player(obj["x"], obj["y"])
                 self.player = tile
-            elif obj["tile"] == "Potato":
-                print("potato found")
-                tile = farm.Potato(obj["x"], obj["y"])
             else:
-                tile.color = (255,0,0)
+                print("obj:",obj)
+                tile = getattr(sys.modules[obj["module"]], obj["tile"])(obj["x"], obj["y"])
             if load:
                 tile.load_json(obj)
             objects.append(tile)

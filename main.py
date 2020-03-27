@@ -40,7 +40,9 @@ class GameState:
         def __init__(self, fsm):
             super().__init__(fsm)
             self.r = render.Renderer(gRootConsole, gWidth, gHeight)
+            self.inventory = menu.Inventory(gRootConsole, gWidth, gHeight)
             self.lm = level.LevelManager()
+            self.lm.inventory = self.inventory
             try:
                 self.lm.load_save("save.json")
                 self.player = self.lm.player
@@ -64,7 +66,6 @@ class GameState:
 
             #inventory
             self.inventory_controls = control.InventoryControls()
-            self.inventory = menu.Inventory(gRootConsole, gWidth, gHeight)
             self.inventory_controls.emitter.bind(move_down=self.inventory.move_down)
             self.inventory_controls.emitter.bind(move_up=self.inventory.move_up)
             self.inventory_controls.emitter.bind(select=self.inventory.select)

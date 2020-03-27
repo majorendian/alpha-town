@@ -11,7 +11,7 @@ class Universal(object):
         self.interactible = False
 
     def save_json(self):
-        return {"x": self.x, "y": self.y, "tile": type(self).__name__}
+        return {"x": self.x, "y": self.y, "tile": type(self).__name__, "module": self.__module__}
 
     def load_json(self, d):
         self.x = d["x"]

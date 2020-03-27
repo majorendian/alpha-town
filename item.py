@@ -1,11 +1,16 @@
 import globs
 import classes
+import farm
 from enum import Enum, auto
 
 class Item(object):
     def __init__(self):
         self.name = "Default item"
         self.description = "Default item description"
+        self.count = 1
+
+    def save_json(self):
+        return {"module": self.__module__, "item": type(self).__name__, "count" : self.count}
 
     def use(self):
         print("item",self.name,"used")
@@ -14,27 +19,86 @@ class ToolHandler(object):
     class Tools(Enum):
         WATERING_BUCKET = auto()
         SHOVEL = auto()
+        SPADE = auto()
         
     def __init__(self, player, level):
         self.level = level
         self.player = player
         self.current_tool = None
+        self.toolfuncs = {
+            ToolHandler.Tools.WATERING_BUCKET : self.water_bucket,
+            ToolHandler.Tools.SHOVEL : self.shovel,
+            ToolHandler.Tools.SPADE : self.spade,
+        }
 
     def use_tool(self, vector):
-        if self.current_tool == ToolHandler.Tools.WATERING_BUCKET:
-            self.water_bucket(vector)
+        self.toolfuncs[self.current_tool](vector)
 
     # tool functions
     def water_bucket(self, vector): #data = vector to spawn the water on
-        newtile = classes.WaterDroplet(self.player.x+vector[0], self.player.y+vector[1])
-        globs.gEventHandler.emit("add_object", newtile)
+        if vector[0] != 0:
+            globs.gEventHandler.emit("add_object", classes.WaterDroplet(self.player.x+vector[0], self.player.y+vector[1]))
+            globs.gEventHandler.emit("add_object", classes.WaterDroplet(self.player.x+vector[0], self.player.y+vector[1]+1))
+            globs.gEventHandler.emit("add_object", classes.WaterDroplet(self.player.x+vector[0], self.player.y+vector[1]-1))
+        if vector[1] != 0:
+            globs.gEventHandler.emit("add_object", classes.WaterDroplet(self.player.x+vector[0], self.player.y+vector[1]))
+            globs.gEventHandler.emit("add_object", classes.WaterDroplet(self.player.x+vector[0]+1, self.player.y+vector[1]))
+            globs.gEventHandler.emit("add_object", classes.WaterDroplet(self.player.x+vector[0]-1, self.player.y+vector[1]))
+
+    def create_object(self, vector, objclass):
+        objects = self.level.objects_at(self.player.x + vector[0], self.player.y + vector[1])
+        if len(objects) == 0:
+            newtile = objclass(self.player.x+vector[0], self.player.y+vector[1])
+            globs.gEventHandler.emit("add_object", newtile)
+        else:
+            for obj in objects:
+                if isinstance(obj, objclass):
+                    globs.gEventHandler.emit("object_destroy", obj)
         
 
-class WateringBucket(Item):
+    def spade(self, vector):
+        self.create_object(vector, farm.Soil)
+
+    def shovel(self, vector):
+        self.create_object(vector, farm.Hole)
+
+        
+class Tool(Item):
+    def __init__(self):
+        super().__init__()
+        self.name = "Default tool"
+        self.description = "No use"
+        self.tool = None
+
+    def use(self):
+        globs.gEventHandler.emit("use_tool", self.tool)
+
+class WateringBucket(Tool):
     def __init__(self):
         super().__init__()
         self.name = "Watering bucket"
         self.description = "Used to water crops"
+        self.tool = ToolHandler.Tools.WATERING_BUCKET
 
-    def use(self):
-        globs.gEventHandler.emit("use_tool", ToolHandler.Tools.WATERING_BUCKET)
+class Shovel(Tool):
+    def __init__(self):
+        super().__init__()
+        self.name = "Shovel"
+        self.description = "Used to dig into the ground"
+        self.tool = ToolHandler.Tools.SHOVEL
+
+        
+class Spade(Tool):
+    def __init__(self):
+        super().__init__()
+        self.name = "Spade"
+        self.description = "Used tild soil"
+        self.tool = ToolHandler.Tools.SPADE
+    
+
+class Seeds(Item):
+    def __init__(self):
+        super().__init__()
+        self.name = "Default seeds"
+        self.description = "Default seeds"
+        self.seed = None

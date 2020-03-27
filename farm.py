@@ -4,10 +4,21 @@ from enum import Enum, auto
 
 class Soil(classes.Floor):
     def __init__(self, x, y):
-        super().__init__(self, x, y)
+        super().__init__(x, y)
         self.symbol = "."
         self.color = (129,71,4) #brown for soil
 
+class Hole(classes.Floor):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.symbol = "o"
+        self.color = (129,71,4) #brown for dirt
+        self.interactible = True
+        self.name = "Hole"
+        self.text = ["A hole is in the ground"]
+
+    def interact(self):
+        print("interacted with hole")
 
 class Plant(classes.Floor):
     class PlantStates():
@@ -20,6 +31,7 @@ class Plant(classes.Floor):
         return {"x": self.x,
                 "y": self.y,
                 "tile": type(self).__name__,
+                "module": self.__module__,
                 "state": self.state,
                 "age": self.age,
                 "health": self.health,

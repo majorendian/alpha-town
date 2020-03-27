@@ -506,6 +506,7 @@
 	 "x": 240,
 	 "y": 160,
 	 "tile":"Potato",
+	 "module": "farm",
 	 "state": "DRY",
 	 "age": 0,
 	 "health" : 100

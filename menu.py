@@ -1,6 +1,7 @@
 from pydispatch import Dispatcher
 import item
 import globs
+import sys
 
 class TextWindowEmitter(Dispatcher):
     _events_ = ["close"]
@@ -84,7 +85,7 @@ class Inventory(Menu):
     def __init__(self, root_console, width, height):
         super().__init__(root_console, width, height, [])
         self.slots = 20
-        self.items = [item.Item(), item.WateringBucket()]
+        self.items = [item.Item(), item.WateringBucket(), item.Shovel(), item.Spade()]
 
     def draw_frame(self):
         self.console.draw_frame(x=0, y=int(self.h/4), width=self.w, height=self.slots, title=self.title, fg=(255,255,255), bg=(0,0,0))
@@ -93,11 +94,33 @@ class Inventory(Menu):
         row = 0
         self.draw_frame()
         for item in self.items:
+            count_display = False
+            if item.count > 1:
+                count_display = True
             if self.cursor_index == row:
-                self.console.print(x=1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name, fg=(20,20,255))
+                if count_display:
+                    self.console.print(x=1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name, fg=(20,20,255))
+                else:
+                    self.console.print(x=1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name + " ("+str(item.count)+")", fg=(20,20,255))
+                        
             else:
-                self.console.print(x=1, y=int(self.h/4)+1+row, string=" " + item.name)
+                if count_display:
+                    self.console.print(x=1, y=int(self.h/4)+1+row, string=" " + item.name + "("+str(item.count)+")")
+                else:
+                    self.console.print(x=1, y=int(self.h/4)+1+row, string=" " + item.name)
             row += 1
+
+    def save_json(self):
+        invlist = []
+        for item in self.items:
+            invlist.append(item.save_json())
+        return invlist
+
+    def load_json(self, d):
+        for entry in d:
+            item = getattr(sys.modules[entry["module"]], entry["item"])()
+            item.count = entry["count"]
+            self.items.append(item)
 
     def move_up(self):
         if self.cursor_index > 0:
