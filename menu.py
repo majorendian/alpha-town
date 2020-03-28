@@ -85,7 +85,9 @@ class Inventory(Menu):
     def __init__(self, root_console, width, height):
         super().__init__(root_console, width, height, [])
         self.slots = 20
-        self.items = [item.Item(), item.WateringBucket(), item.Shovel(), item.Spade()]
+        seeds = item.Seeds()
+        seeds.count = 5
+        self.items = [item.Item(), item.WateringBucket(), item.Shovel(), item.Spade(), seeds]
 
     def draw_frame(self):
         self.console.draw_frame(x=0, y=int(self.h/4), width=self.w, height=self.slots, title=self.title, fg=(255,255,255), bg=(0,0,0))
@@ -137,11 +139,24 @@ class Inventory(Menu):
         item = self.items[self.cursor_index]
         item.use()
 
+    def add_item(self, it):
+        found = False
+        for i in self.items:
+            if type(it) == type(i):
+                i.count += it.count
+                found = True
+        if not found:
+            print("addind to inventory:",it,"count:",it.count)
+            self.items.append(it)
+        
 
     def drop_item(self):
         item = self.items[self.cursor_index]
-        self.items.remove(item)
+        if item.count == 1:
+            self.items.remove(item)
+        else:
+            item.count -= 1
         self.render_items()
-        globs.gEventHandler.emit("drop_item", item)
+        globs.gEventHandler.emit("drop_item", item, self.cursor_index)
 
 

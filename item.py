@@ -25,6 +25,15 @@ class ItemTile(classes.Tile):
         self.item = Item
         self.symbol = "i"
 
+    def save_json(self):
+        d = super().save_json()
+        d["count"] = self.count
+        return d
+
+    def load_json(self, jsond):
+        super().load_json(jsond)
+        self.count = jsond["count"]
+
 class ToolHandler(object):
     class Tools(Enum):
         WATERING_BUCKET = auto()
@@ -89,7 +98,7 @@ class WateringBucket(Tool):
         self.name = "Watering bucket"
         self.description = "Used to water crops"
         self.tool = ToolHandler.Tools.WATERING_BUCKET
-        self.tile = WateringBucketTile(0,0)
+        self.tile = WateringBucketTile
 
 class WateringBucketTile(ItemTile):
     def __init__(self, x, y):
@@ -104,7 +113,7 @@ class Shovel(Tool):
         self.name = "Shovel"
         self.description = "Used to dig into the ground"
         self.tool = ToolHandler.Tools.SHOVEL
-        self.tile = ShovelTile(0,0)
+        self.tile = ShovelTile
 
 class ShovelTile(ItemTile):
     def __init__(self, x, y):
@@ -120,7 +129,7 @@ class Spade(Tool):
         self.name = "Spade"
         self.description = "Used tild soil"
         self.tool = ToolHandler.Tools.SPADE
-        self.tile = SpadeTile(0,0)
+        self.tile = SpadeTile
 
 class SpadeTile(ItemTile):
     def __init__(self, x, y):
@@ -129,9 +138,18 @@ class SpadeTile(ItemTile):
         self.color = (200,200,200)
         self.item = Spade
 
+
 class Seeds(Item):
     def __init__(self):
         super().__init__()
         self.name = "Default seeds"
         self.description = "Default seeds"
         self.seed = None
+        self.tile = SeedsTile
+
+class SeedsTile(ItemTile):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.name = "Default seeds tile"
+        self.description = "Default seeds tile"
+        self.item = Seeds

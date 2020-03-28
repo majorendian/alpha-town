@@ -97,23 +97,36 @@ class GameState:
             elif tool == None and self.tool_handler.current_tool:
                 self.interaction_state = GameState.Game.ControlState.TOOL
 
-        def on_drop_item(self, item):
-            print("dropping item", item)
+        def on_drop_item(self, it, index):
+            print("dropping item", it)
             objects = self.lm.level.objects_at(self.player.x, self.player.y)
             if len(objects) == 1 and isinstance(objects[0], classes.Player):
-                item.tile.x = self.player.x
-                item.tile.y = self.player.y
-                gEventHandler.emit("add_object", item.tile)
-            else:
-                self.show_message("Message", ["Cannot drop item, space occupied"])
-                self.inventory.items.append(item)
+                newtile = it.tile(self.player.x, self.player.y)
+                gEventHandler.emit("add_object", newtile)
+
+            elif len(objects) >= 2:
+                found = False
+                for o in objects:
+                    if isinstance(o, it.tile) and isinstance(o, item.ItemTile):
+                        #if this object is the same object as the item.tile and the object is of type ItemTile, increase item count
+                        print("adding count to obj",o)
+                        o.count += 1
+                        found = True
+                if not found:
+                    self.show_message("Message", ["Cannot drop item, space occupied"])
+                    self.inventory.items.insert(index, it)
 
         def on_item_pickup(self, obj):
             # item is at player coord
             item = obj.item()
-            self.inventory.items.append(item)
+            item.count = obj.count
+            self.inventory.add_item(item)
             gEventHandler.emit("object_destroy", obj)
-            self.show_message("Message", [item.name + " picked up"])
+            if item.count > 1:
+                self.show_message("Message", [item.name + "("+str(item.count)+")" +" picked up"])
+            else:
+                self.show_message("Message", [item.name +" picked up"])
+                
 
         def on_tool_use_direction(self, data):
             print("tool used in vector:", data)

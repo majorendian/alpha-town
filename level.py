@@ -60,6 +60,7 @@ class LevelManager(object):
         self.level.objects.insert(0, obj)
 
     def destroy_object(self, obj):
+        print("destroying object", obj)
         self.level.objects.remove(obj) # this should remove the water droplet
 
     def load_level(self, level_json):
