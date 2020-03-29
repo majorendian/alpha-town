@@ -85,14 +85,20 @@ class Inventory(Menu):
     def __init__(self, root_console, width, height):
         super().__init__(root_console, width, height, [])
         self.slots = 20
-        seeds = item.Seeds()
+        seeds = item.Potato()
         seeds.count = 5
         self.items = [item.Item(), item.WateringBucket(), item.Shovel(), item.Spade(), seeds]
 
     def draw_frame(self):
         self.console.draw_frame(x=0, y=int(self.h/4), width=self.w, height=self.slots, title=self.title, fg=(255,255,255), bg=(0,0,0))
 
+    def update_inventory(self):
+        for i in self.items[:]:
+            if i.count <= 0:
+                self.items.remove(i)
+
     def render_items(self):
+        self.update_inventory()
         row = 0
         self.draw_frame()
         for item in self.items:

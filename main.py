@@ -36,6 +36,7 @@ class GameState:
             INVENTORY = auto()
             MENU = auto()
             TOOL = auto()
+            NONTOOL = auto()
 
         def __init__(self, fsm):
             super().__init__(fsm)
@@ -77,6 +78,11 @@ class GameState:
             self.tool_controls = control.ToolControls(self.player, self.lm.level)
             self.tool_controls.emitter.bind(direction=self.on_tool_use_direction)
 
+            #non-tools
+            self.nontool_controls = control.NonToolsControls(self.player, self.lm.level)
+            self.nontool_controls.emitter.bind(direction=self.on_nontool_use_direction)
+            self.nontool_handler = item.NonToolHandler(self.player, self.lm.level)
+
             #in game menu
             self.menu_controls = control.MenuControls()
             self.in_game_menu = None # needs to be none just like for the text window
@@ -84,8 +90,28 @@ class GameState:
             #global events
             self.tool_handler = item.ToolHandler(self.player, self.lm.level)
             # gEventHandler.bind("inventory_item_close", self.on_inventory_close)
+            self._last_used = None
             gEventHandler.bind("use_tool", self.on_use_tool)
             gEventHandler.bind("drop_item", self.on_drop_item)
+            gEventHandler.bind("use_non_tool", self.on_nontool_use)
+
+        def on_nontool_use(self, obj=None):
+            print("using nontool:",obj)
+            self.on_inventory_close()
+            self.render()
+            if obj:
+                self.nontool_handler.obj = obj
+                self._last_used = self.nontool_handler
+
+            self.interaction_state = GameState.Game.ControlState.NONTOOL
+
+        def on_nontool_use_direction(self, data):
+            print("using in direction",data)
+            error, msg = self.nontool_handler.use_object(data)
+            if error:
+                self.show_message("Message", [msg])
+            else:
+                self.interaction_state = GameState.Game.ControlState.ROAM
 
         def on_use_tool(self, tool=None):
             print("use_tool")
@@ -93,9 +119,12 @@ class GameState:
                 self.on_inventory_close()
                 self.render()
                 self.tool_handler.current_tool = tool # set the tool which is being handeled
+                self._last_used = self.tool_handler
                 self.interaction_state = GameState.Game.ControlState.TOOL
-            elif tool == None and self.tool_handler.current_tool:
+            elif self._last_used is self.tool_handler and tool == None and self.tool_handler.current_tool:
                 self.interaction_state = GameState.Game.ControlState.TOOL
+            elif self._last_used is self.nontool_handler:
+                self.on_nontool_use()
 
         def on_drop_item(self, it, index):
             print("dropping item", it)
@@ -211,6 +240,8 @@ class GameState:
                 self.inventory_controls.handlekeys()
             elif self.interaction_state == GameState.Game.ControlState.TOOL:
                 self.tool_controls.handlekeys()
+            elif self.interaction_state == GameState.Game.ControlState.NONTOOL:
+                self.nontool_controls.handlekeys()
 
         def render(self):
             gRootConsole.clear()

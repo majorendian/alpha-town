@@ -79,7 +79,6 @@ class ToolControls(object):
         self.emitter = ToolControlsEmitter()
 
     def handlekeys(self):
-        print("handling tool keys")
         for event in tcod.event.wait():
             if event.type == "QUIT":
                 raise SystemExit()
@@ -93,6 +92,13 @@ class ToolControls(object):
                 elif event.scancode == tcod.event.SCANCODE_DOWN:
                     self.emitter.emit("direction", data=(0,1))
                 
+class NonToolsControlsEmitter(ToolControlsEmitter):
+    pass
+
+class NonToolsControls(ToolControls):
+    def __init__(self, player, level):
+        super().__init__(player, level)
+        self.emitter = NonToolsControlsEmitter()
 
 
 class ConversationControlsEmitter(Dispatcher):

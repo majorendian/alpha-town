@@ -54,10 +54,14 @@ class LevelManager(object):
         self.inventory = None
         globs.gEventHandler.bind("object_destroy", self.destroy_object)
         globs.gEventHandler.bind("add_object", self.add_object)
+        globs.gEventHandler.bind("add_object_append", self.add_object_append)
 
     def add_object(self, obj):
         print("adding object",obj)
         self.level.objects.insert(0, obj)
+
+    def add_object_append(self, obj):
+        self.level.objects.append(obj)
 
     def destroy_object(self, obj):
         print("destroying object", obj)
