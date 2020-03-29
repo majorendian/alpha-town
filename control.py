@@ -19,18 +19,23 @@ class MainControls(object):
             if event.type == "QUIT":
                 raise SystemExit()
             elif event.type == "KEYDOWN":
+                # print("playerx:",self.player.x,"playery:",self.player.y)
                 if event.scancode == tcod.event.SCANCODE_DOWN:
-                    if self.level.check_walkable(self.player.x, self.player.y+1):
-                        self.player.y += 1
+                    if self.player.y+2 < self.level.mapobj.h:
+                        if self.level.check_walkable(self.player.x, self.player.y+1):
+                            self.player.y += 1
                 elif event.scancode == tcod.event.SCANCODE_UP:
-                    if self.level.check_walkable(self.player.x, self.player.y-1):
-                        self.player.y -= 1
+                    if self.player.y > 0:
+                        if self.level.check_walkable(self.player.x, self.player.y-1):
+                            self.player.y -= 1
                 elif event.scancode == tcod.event.SCANCODE_LEFT:
-                    if self.level.check_walkable(self.player.x-1, self.player.y):
-                        self.player.x -= 1
+                    if self.player.x > 0:
+                        if self.level.check_walkable(self.player.x-1, self.player.y):
+                            self.player.x -= 1
                 elif event.scancode == tcod.event.SCANCODE_RIGHT:
-                    if self.level.check_walkable(self.player.x+1, self.player.y):
-                        self.player.x += 1
+                    if self.player.x+2 < self.level.mapobj.w:
+                        if self.level.check_walkable(self.player.x+1, self.player.y):
+                            self.player.x += 1
                 elif event.scancode == tcod.event.SCANCODE_E:
                     self.emitter.emit("interaction")
                 elif event.scancode == tcod.event.SCANCODE_I:

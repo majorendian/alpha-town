@@ -1,5 +1,5 @@
 import event
 
-gWidth = 80
+gWidth = 140
 gHeight = 40
 gEventHandler = event.EventHandler()

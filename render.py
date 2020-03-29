@@ -61,6 +61,7 @@ class Renderer(object):
         #mapobj is the underlying map
         #objects are objects overlayed on the map
         assert isinstance(mapobj, Map)
+        # print("start_x:",self.start_x)
         for row in mapobj.m:
             for tile in row:
                 if tile.x < self.w+self.start_x and tile.y < self.h+self.start_y and\

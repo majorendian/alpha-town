@@ -237,6 +237,7 @@ class GameState:
         def run(self):
 
             # readjust camera immediatelly after load, before render
+            # NOTE: start_x isn't always properly adjusted. it is never 0 and it sometimes can lead to the player leaving the map
             if self.player.x >= gWidth/2:
                 if abs(self.player.x - gWidth/2) <= self.lm.level.mapobj.w - gWidth:
                     self.r.start_x = int(abs(self.player.x - gWidth/2))
@@ -290,8 +291,8 @@ class GameTransition:
 
 # Setup the console text
 tcod.console_set_custom_font(
-        "terminal16x16_gs_ro.png",
-        tcod.FONT_LAYOUT_ASCII_INROW,
+        "terminal10x16_gs_tc.png",
+        tcod.FONT_LAYOUT_TCOD,
 )
 
 # Setup the console main window
