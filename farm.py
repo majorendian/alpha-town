@@ -1,5 +1,6 @@
 import classes
 import state
+import item
 from enum import Enum, auto
 
 class Soil(classes.Floor):
@@ -48,19 +49,22 @@ class Plant(classes.Floor):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.symbol = "f"
+        self.ripe_symbol = "F"
         self.color = (0,128,0)
-        self.state = Plant.PlantStates.DRY
+        self.state = Plant.PlantStates.RIPE
         self.age = 0
         self.health = 100
         self.watered_time = 0
+        self.gives_items = [] #can give seeds and produce
 
     def update(self, level):
         for obj in level.objects_at(self.x, self.y):
             if not obj is self and isinstance(obj, classes.WaterDroplet):
                 self.state = Plant.PlantStates.WATERED
                 self.watered_time = 100
-        if self.watered_time <= 0:
+        if self.watered_time <= 0 and self.state != Plant.PlantStates.RIPE:
             self.state = Plant.PlantStates.DRY
+
         if self.state == Plant.PlantStates.DRY:
             self.health -= 1
             if self.health <= 0:
@@ -71,9 +75,10 @@ class Plant(classes.Floor):
                 self.health += 1
             self.color = (0,255,0)
         elif self.state == Plant.PlantStates.RIPE:
-            pass
+            self.symbol = self.ripe_symbol
         elif self.state == Plant.PlantStates.DEAD:
             self.color = (128,64,64)
+
         self.age += 1
         if self.watered_time > 0:
             self.watered_time -= 1
@@ -82,9 +87,12 @@ class Plant(classes.Floor):
 class Potato(Plant):
     def __init__(self, x, y):
         super().__init__(x, y)
+        self.gives_items = [
+            { "class" : item.Potato, "count" : 5 }
+        ]
 
     def update(self, level):
         super().update(level)
+        print(self.state)
         if self.age > 100 and self.state != Plant.PlantStates.DEAD:
-            self.symbol = "F"
             self.state = Plant.PlantStates.RIPE

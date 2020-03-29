@@ -9,7 +9,7 @@ class Universal(object):
         self.color = (255,255,255)
         self.walkable = True
         self.interactible = False
-        self.item = False
+        self.item = None
 
     def save_json(self):
         return {"x": self.x, "y": self.y, "tile": type(self).__name__, "module": self.__module__}

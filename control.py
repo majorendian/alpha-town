@@ -40,9 +40,10 @@ class MainControls(object):
                 elif event.scancode == tcod.event.SCANCODE_U:
                     globs.gEventHandler.emit("use_tool")
                 elif event.scancode == tcod.event.SCANCODE_G:
-                    obj = self.level.check_item(self.player.x, self.player.y)
+                    obj = self.level.check_item(self.player.x, self.player.y) or self.level.check_plant(self.player.x, self.player.y)
                     if obj:
                         self.emitter.emit("pickup_item", obj)
+
 
 class InteractionControlsEmitter(Dispatcher):
     _events_ = ["interaction_finished"]

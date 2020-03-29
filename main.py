@@ -12,6 +12,7 @@ import level
 from enum import Enum, auto
 import menu
 import item
+import farm
 
 gRootConsole = None # just so that we can reference it inside the classes
 # Basic states of the game
@@ -147,14 +148,27 @@ class GameState:
 
         def on_item_pickup(self, obj):
             # item is at player coord
-            item = obj.item()
-            item.count = obj.count
-            self.inventory.add_item(item)
-            gEventHandler.emit("object_destroy", obj)
-            if item.count > 1:
-                self.show_message("Message", [item.name + "("+str(item.count)+")" +" picked up"])
-            else:
-                self.show_message("Message", [item.name +" picked up"])
+            if isinstance(obj, item.ItemTile):
+                it = obj.item()
+                it.count = obj.count
+                self.inventory.add_item(it)
+                gEventHandler.emit("object_destroy", obj)
+                if it.count > 1:
+                    self.show_message("Message", [it.name + "("+str(it.count)+")" +" picked up"])
+                else:
+                    self.show_message("Message", [it.name +" picked up"])
+            elif isinstance(obj, farm.Plant):
+                plant_items = []
+                msg = "Picked up: "
+                for i in obj.gives_items:
+                    newitem = i["class"]()
+                    newitem.count = i["count"]
+                    msg += newitem.name + "("+str(newitem.count)+") "
+                    plant_items.append(newitem)
+                for i in plant_items:
+                    self.inventory.add_item(i)
+                gEventHandler.emit("object_destroy", obj)
+                self.show_message("Message", [msg])
                 
 
         def on_tool_use_direction(self, data):

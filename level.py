@@ -38,6 +38,12 @@ class Level(object):
             if obj.item:
                 return obj
 
+    def check_plant(self, x, y):
+        objects = self.objects_at(x, y)
+        for obj in objects:
+            if isinstance(obj, farm.Plant):
+                return obj
+
     def objects_at(self, x, y):
         objlist = []
         for obj in self.objects:

@@ -206,8 +206,8 @@ class Potato(Seeds):
         self.plant = farm.Potato
 
 class PotatoTile(SeedsTile):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, x, y):
+        super().__init__(x, y)
         self.name = "Potato"
         self.description = "Can be planted for more potatoes"
         self.item = Potato
