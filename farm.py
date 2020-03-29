@@ -1,6 +1,7 @@
 import classes
 import state
 import item
+import globs
 from enum import Enum, auto
 
 class Soil(classes.Floor):
@@ -19,7 +20,7 @@ class Hole(classes.Floor):
         self.text = ["A hole is in the ground"]
 
     def interact(self):
-        print("interacted with hole")
+        globs.gEventHandler.emit("interact_description", self)
 
 class Plant(classes.Floor):
     class PlantStates():

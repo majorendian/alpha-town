@@ -61,7 +61,7 @@ class GameState:
             self.controls.emitter.bind(in_game_menu=self.on_in_game_menu_open)
             self.controls.emitter.bind(pickup_item=self.on_item_pickup)
             
-            self.interaction_controls.emitter.bind(interaction_finished=self.on_interaction_finished)
+            self.interaction_controls.emitter.bind(interaction_direction=self.on_interaction_direction)
             self.conversation_controls = control.ConversationControls()
 
             #we need a handle for the text window to be persitent or else the function will not be called so we need this textwindow variable
@@ -95,6 +95,8 @@ class GameState:
             gEventHandler.bind("use_tool", self.on_use_tool)
             gEventHandler.bind("drop_item", self.on_drop_item)
             gEventHandler.bind("use_non_tool", self.on_nontool_use)
+            gEventHandler.bind("interact_description", self.interact_description)
+            gEventHandler.bind("interact_npc", self.interact_npc)
 
         def on_nontool_use(self, obj=None):
             print("using nontool:",obj)
@@ -179,18 +181,19 @@ class GameState:
         def on_interaction(self):
             self.interaction_state = GameState.Game.ControlState.INTERACTION
 
-        def on_interaction_finished(self, *args, **kwargs):
+        def on_interaction_direction(self, *args, **kwargs):
             if kwargs["obj"]:
                 obj = kwargs["obj"]
                 print("start conversation state with", obj)
-                self.interaction_state = GameState.Game.ControlState.DIALOGUE
-                self.text_window = menu.TextWindow(gRootConsole, gWidth, 10, obj.name)
-                self.text_window.set_pages(obj.text)
-                self.text_window.on_confirm()
-                self.conversation_controls.emitter.bind(confirm=self.text_window.on_confirm)
-                self.text_window.emitter.bind(close=self.on_text_window_close)
+                obj.interact()
             else:
                 self.interaction_state = GameState.Game.ControlState.ROAM
+
+        def interact_description(self, obj):
+            self.show_message(obj.name, obj.text)
+
+        def interact_npc(self, obj):
+            print("interacting with npc:",obj.name)
 
         def on_text_window_close(self):
             self.interaction_state = GameState.Game.ControlState.ROAM

@@ -46,7 +46,7 @@ class MainControls(object):
 
 
 class InteractionControlsEmitter(Dispatcher):
-    _events_ = ["interaction_finished"]
+    _events_ = ["interaction_direction"]
 
 class InteractionControls(object):
     def __init__(self, player, level):
@@ -68,7 +68,7 @@ class InteractionControls(object):
                     interactible, obj = self.level.check_interactible(self.player.x, self.player.y-1)
                 elif event.scancode == tcod.event.SCANCODE_DOWN:
                     interactible, obj = self.level.check_interactible(self.player.x, self.player.y+1)
-                self.emitter.emit("interaction_finished", obj=obj)
+                self.emitter.emit("interaction_direction", obj=obj)
 
 class ToolControlsEmitter(Dispatcher):
     _events_ = ["direction"]

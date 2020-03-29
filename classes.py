@@ -47,6 +47,9 @@ class Furniture(Entity):
         self.walkable = False
         self.interactible = True
 
+    def interact(self):
+        globs.gEventHandler.emit("interact_description", self)
+
 
 class WoodenChair(Furniture):
     def __init__(self,x ,y):
@@ -83,6 +86,9 @@ class NPC(Entity):
             self.x += randx
         if nexty > 0 and nexty < level.mapobj.h and level.check_walkable(self.x, nexty):
             self.y += randy
+
+    def interact_npc(self):
+        globs.gEventHandler.emit("interact_npc", self)
     
 
 class Tile(Universal):
