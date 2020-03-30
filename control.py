@@ -48,6 +48,10 @@ class MainControls(object):
                     obj = self.level.check_item(self.player.x, self.player.y) or self.level.check_plant(self.player.x, self.player.y)
                     if obj:
                         self.emitter.emit("pickup_item", obj)
+                obj = self.level.check_item(self.player.x, self.player.y) or self.level.check_plant(self.player.x, self.player.y)
+                if obj:
+                    globs.gEventHandler.emit("update_help_text", "Press 'g' to pick up " + obj.name)
+                        
 
 
 class InteractionControlsEmitter(Dispatcher):
@@ -60,10 +64,12 @@ class InteractionControls(object):
         self.emitter = InteractionControlsEmitter()
 
     def handlekeys(self):
+        globs.gEventHandler.emit("update_help_text", "Press a direction key to interact")
         for event in tcod.event.wait():
             if event.type == "QUIT":
                 raise SystemExit()
             elif event.type == "KEYDOWN":
+                globs.gEventHandler.emit("update_help_text","")
                 interactible, obj = (None, None)
                 if event.scancode == tcod.event.SCANCODE_RIGHT:
                     interactible, obj = self.level.check_interactible(self.player.x+1, self.player.y)
@@ -85,6 +91,7 @@ class ToolControls(object):
         self.emitter = ToolControlsEmitter()
 
     def handlekeys(self):
+        globs.gEventHandler.emit("update_help_text", "Press a direction key to use selected item")
         for event in tcod.event.wait():
             if event.type == "QUIT":
                 raise SystemExit()
@@ -115,6 +122,7 @@ class ConversationControls(object):
         self.emitter = ConversationControlsEmitter()
         
     def handlekeys(self):
+        globs.gEventHandler.emit("update_help_text", "Press space to advance text")
         for event in tcod.event.wait():
             if event.type == "QUIT":
                 raise SystemExit()

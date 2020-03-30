@@ -3,6 +3,26 @@ import item
 import globs
 import sys
 
+class HelpStatusBar(object):
+    def __init__(self, tcod_console, width, height):
+        self.h = height
+        self.w = width
+        self.console = tcod_console
+        self.text = ""
+        globs.gEventHandler.bind("update_help_text", self.set_text)
+
+    def render(self):
+        self.console.print_box(x=0, y=self.h-1, width=self.w, height=1, string=self.text, fg=(255,255,255), bg=(0,0,0))
+
+    def clear_text(self):
+        self.text = " " * self.w
+        self.render()
+
+    def set_text(self, text):
+        self.clear_text()
+        self.text = text
+        self.render()
+
 class TextWindowEmitter(Dispatcher):
     _events_ = ["close"]
 

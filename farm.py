@@ -50,6 +50,7 @@ class Plant(classes.Floor):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.symbol = "f"
+        self.name = "Plant"
         self.ripe_symbol = "F"
         self.color = (0,128,0)
         self.state = Plant.PlantStates.RIPE
@@ -88,6 +89,7 @@ class Plant(classes.Floor):
 class Potato(Plant):
     def __init__(self, x, y):
         super().__init__(x, y)
+        self.name = "Potato"
         self.gives_items = [
             { "class" : item.Potato, "count" : 5 }
         ]

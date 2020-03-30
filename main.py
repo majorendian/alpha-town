@@ -42,6 +42,7 @@ class GameState:
         def __init__(self, fsm):
             super().__init__(fsm)
             self.r = render.Renderer(gRootConsole, gWidth, gHeight)
+            self.help_statusbar = menu.HelpStatusBar(gRootConsole, gWidth, gHeight)
             self.inventory = menu.Inventory(gRootConsole, gWidth, gHeight)
             self.lm = level.LevelManager()
             self.lm.inventory = self.inventory
@@ -260,6 +261,10 @@ class GameState:
                 self.tool_controls.handlekeys()
             elif self.interaction_state == GameState.Game.ControlState.NONTOOL:
                 self.nontool_controls.handlekeys()
+
+            obj = self.lm.level.check_item(self.player.x, self.player.y) or self.lm.level.check_plant(self.player.x, self.player.y)
+            if obj:
+                self.help_statusbar.set_text("Press 'g' to pick up " + obj.name)
 
         def render(self):
             gRootConsole.clear()
