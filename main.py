@@ -98,6 +98,7 @@ class GameState:
             gEventHandler.bind("use_non_tool", self.on_nontool_use)
             gEventHandler.bind("interact_description", self.interact_description)
             gEventHandler.bind("interact_npc", self.interact_npc)
+            gEventHandler.bind("interact_door", self.interact_door)
 
         def on_nontool_use(self, obj=None):
             print("using nontool:",obj)
@@ -195,6 +196,10 @@ class GameState:
 
         def interact_npc(self, obj):
             print("interacting with npc:",obj.name)
+
+        def interact_door(self, obj):
+            print("interacting with door")
+            self.interaction_state = GameState.Game.ControlState.ROAM
 
         def on_text_window_close(self):
             self.interaction_state = GameState.Game.ControlState.ROAM

@@ -41,6 +41,36 @@ class Entity(Universal):
         self.x = x
         self.y = y
 
+class Door(Universal):
+    def __init__(self, x, y):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.interactible = True
+        self.walkable = False
+        self.color = (200,20,10)
+        self.symbol = "-"
+        self.closed_symbol = "-"
+        self.open_symbol = "/"
+
+    def interact(self):
+        if not self.walkable:
+            self.symbol = self.open_symbol
+            self.walkable = True
+        else:
+            self.symbol = self.closed_symbol
+            self.walkable = False
+        globs.gEventHandler.emit("interact_door", self)
+
+class HorizontalDoor(Door):
+    pass
+
+class VerticalDoor(Door):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.closed_symbol = "|"
+        self.symbol = self.closed_symbol
+
 class Furniture(Entity):
     def __init__(self, x, y):
         super().__init__(x, y)

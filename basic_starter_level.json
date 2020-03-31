@@ -511,6 +511,18 @@
 	 "age": 0,
 	 "health" : 100
 	 
+     },
+     {
+	 "x":251,
+	 "y":175,
+	 "tile":"HorizontalDoor",
+	 "module":"classes"
+     },
+     {
+	 "x":263,
+	 "y":181,
+	 "tile":"VerticalDoor",
+	 "module":"classes"
      }
  ]
 }
