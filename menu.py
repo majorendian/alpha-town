@@ -63,7 +63,7 @@ class MenuItem(object):
         self.func()
 
 class Menu(object):
-    def __init__(self, root_console, width, height, items=[]):
+    def __init__(self, root_console, width, height, items=[], x=0, y=0):
         self.console = root_console
         self.items = items
         self.cursor_symbol = ">"
@@ -71,19 +71,21 @@ class Menu(object):
         self.w = width
         self.h = height
         self.title = "Menu"
+        self.x = x
+        self.y = y
 
     def draw_frame(self):
         print("item length", len(self.items))
-        self.console.draw_frame(x=0, y=int(self.h/4), width=self.w, height=len(self.items)+2, title=self.title, fg=(255,255,255), bg=(0,0,0))
+        self.console.draw_frame(x=self.x, y=int(self.h/4), width=self.w, height=len(self.items)+2, title=self.title, fg=(255,255,255), bg=(0,0,0))
 
     def render_items(self):
         row = 0
         self.draw_frame()
         for item in self.items:
             if self.cursor_index == row:
-                self.console.print(x=1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name, fg=(20,20,255))
+                self.console.print(x=self.x+1, y=int(self.h/4)+1+row, string=self.cursor_symbol + item.name, fg=(20,20,255))
             else:
-                self.console.print(x=1, y=int(self.h/4)+1+row, string=" " + item.name)
+                self.console.print(x=self.x+1, y=int(self.h/4)+1+row, string=" " + item.name)
             row += 1
 
     def move_up(self):

@@ -13,20 +13,41 @@ from enum import Enum, auto
 import menu
 import item
 import farm
+import os.path
 
 gRootConsole = None # just so that we can reference it inside the classes
 # Basic states of the game
 class GameState:
     class Intro(state.State):
+        def __init__(self, fsm):
+            super().__init__(fsm)
+            with open("intro.ascii","r") as f:
+                self.protag_ascii = f.read()
+            items = [menu.MenuItem("New Game", self.new_game), menu.MenuItem("Quit", self.quit_game)]
+            if os.path.isfile("save.json"):
+                items.insert(0, menu.MenuItem("Continue", self.continue_game))
+            self.menu = menu.Menu(gRootConsole, 30, gHeight+30, items, int(gWidth - gWidth/4),0)
+            self.menu.title = ""
+            self.menu_controls = control.MenuControls()
+            self.menu_controls.emitter.bind(move_down=self.menu.move_down)
+            self.menu_controls.emitter.bind(move_up=self.menu.move_up)
+            self.menu_controls.emitter.bind(select=self.menu.select)
+
+        def new_game(self):
+            gContinue = False
+            self.fsm.transition("from_intro_to_game")
+
+        def quit_game(self):
+            raise SystemExit()
+
+        def continue_game(self):
+            gContinue = True
+            self.fsm.transition("from_intro_to_game")
+
         def run(self):
-            gRootConsole.print(x=0,y=0,string="Intro state")
-            for event in tcod.event.wait():
-                if event.type == "QUIT":
-                    raise SystemExit()
-                elif event.type == "KEYDOWN":
-                    if event.scancode == tcod.event.SCANCODE_SPACE:
-                        self.fsm.transition("from_intro_to_game")
-                
+            gRootConsole.print(x=0,y=0,string=self.protag_ascii)
+            self.menu.render_items()
+            self.menu_controls.handlekeys() 
 
     class Game(state.State):
 
@@ -46,10 +67,10 @@ class GameState:
             self.inventory = menu.Inventory(gRootConsole, gWidth, gHeight)
             self.lm = level.LevelManager()
             self.lm.inventory = self.inventory
-            try:
+            if gContinue:
                 self.lm.load_save("save.json")
                 self.player = self.lm.player
-            except IOError:
+            else:
                 self.lm.load_level("basic_starter_level.json")
                 self.player = self.lm.player
                 self.lm.level.objects.append(self.player)
