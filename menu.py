@@ -107,7 +107,7 @@ class Inventory(Menu):
         self.slots = 20
         seeds = item.Potato()
         seeds.count = 5
-        self.items = [item.Item(), item.WateringBucket(), item.Shovel(), item.Spade(), seeds]
+        self.items = [item.Item(), item.WateringBucket(), item.Shovel(), item.Spade(), seeds, item.Sappling(), item.Axe()]
 
     def draw_frame(self):
         self.console.draw_frame(x=0, y=int(self.h/4), width=self.w, height=self.slots, title=self.title, fg=(255,255,255), bg=(0,0,0))

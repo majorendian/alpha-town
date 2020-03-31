@@ -1,6 +1,7 @@
 import render
 import json
 import classes
+import item
 import farm
 import globs
 import sys
@@ -72,6 +73,11 @@ class LevelManager(object):
     def destroy_object(self, obj):
         print("destroying object", obj)
         self.level.objects.remove(obj) # this should remove the water droplet
+        if obj.drop_on_destroy:
+            newobj = obj.drop_on_destroy(obj.x, obj.y)
+            if isinstance(newobj, item.ItemTile):
+                newobj.count = obj.drop_on_destroy_count
+            self.add_object(newobj)
 
     def load_level(self, level_json):
         self.filename = level_json

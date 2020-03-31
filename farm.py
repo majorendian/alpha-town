@@ -55,6 +55,7 @@ class Plant(classes.Floor):
         self.color = (0,128,0)
         self.state = Plant.PlantStates.RIPE
         self.age = 0
+        self.ripe_age = 100
         self.health = 100
         self.watered_time = 0
         self.gives_items = [] #can give seeds and produce
@@ -81,6 +82,9 @@ class Plant(classes.Floor):
         elif self.state == Plant.PlantStates.DEAD:
             self.color = (128,64,64)
 
+        if self.age > self.ripe_age and self.state != Plant.PlantStates.DEAD:
+            self.state = Plant.PlantStates.RIPE
+
         self.age += 1
         if self.watered_time > 0:
             self.watered_time -= 1
@@ -94,8 +98,13 @@ class Potato(Plant):
             { "class" : item.Potato, "count" : 5 }
         ]
 
-    def update(self, level):
-        super().update(level)
-        print(self.state)
-        if self.age > 100 and self.state != Plant.PlantStates.DEAD:
-            self.state = Plant.PlantStates.RIPE
+class Tree(Plant):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.name = "Tree"
+        self.symbol = "y"
+        self.ripe_symbol = "^"
+        self.walkable = False
+        self.gives_items = []
+        self.drop_on_destroy = item.WoodTile
+        self.drop_on_destroy_count = 3

@@ -39,6 +39,7 @@ class ToolHandler(object):
         WATERING_BUCKET = auto()
         SHOVEL = auto()
         SPADE = auto()
+        AXE = auto()
         
     def __init__(self, player, level):
         self.level = level
@@ -48,6 +49,7 @@ class ToolHandler(object):
             ToolHandler.Tools.WATERING_BUCKET : self.water_bucket,
             ToolHandler.Tools.SHOVEL : self.shovel,
             ToolHandler.Tools.SPADE : self.spade,
+            ToolHandler.Tools.AXE : self.axe
         }
 
     def use_tool(self, vector):
@@ -81,6 +83,13 @@ class ToolHandler(object):
     def shovel(self, vector):
         self.create_object(vector, farm.Hole)
 
+    def axe(self, vector):
+        posx, posy = (self.player.x + vector[0], self.player.y + vector[1])
+        objects = self.level.objects_at(posx, posy)
+        for obj in objects:
+            if isinstance(obj, farm.Tree):
+                globs.gEventHandler.emit("object_destroy", obj)
+        
 class NonToolHandler(object):
     class Objects(Enum):
         SEEDS = auto()
@@ -107,7 +116,7 @@ class NonToolHandler(object):
             return (True, "No more seeds of this kind")
         objects = self.level.objects_at(self.player.x+vector[0], self.player.y+vector[1])
         for obj in objects:
-            if isinstance(obj, farm.Soil):
+            if isinstance(obj, self.obj.required_class):
                 self.obj.count -= 1
                 globs.gEventHandler.emit("object_destroy", obj)
                 obj = self.obj.plant(obj.x, obj.y)
@@ -115,8 +124,9 @@ class NonToolHandler(object):
                 found_soil = True
         if not found_soil:
             error = True
-            msg = "No soil to plant the seed"
+            msg = "No "+ self.obj.required_class.__name__ +" to plant the seed"
         return (error, msg)
+
     def furniture(self, vector):
         print("placing furniture:",self.obj)
         
@@ -176,7 +186,37 @@ class SpadeTile(ItemTile):
         self.color = (200,200,200)
         self.item = Spade
 
+class Axe(Tool):
+    def __init__(self):
+        super().__init__()
+        self.name = "Axe"
+        self.description = "Used to cut down trees and other wooden objects"
+        self.tool = ToolHandler.Tools.AXE
+        self.tile = AxeTile
 
+class AxeTile(ItemTile):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.symbol = "a"
+        self.color = (200,30,10)
+        self.item = Axe
+
+class Wood(Item):
+    def __init__(self):
+        super().__init__()
+        self.name = "Wood"
+        self.description = "Can be used to craft other items"
+        self.tile = WoodTile
+
+class WoodTile(ItemTile):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.name = "Wood"
+        self.description = "A piece of wood"
+        self.item = Wood
+        self.symbol = "w"
+        self.color = (200,20,10)
+    
 class Seeds(Item):
     def __init__(self):
         super().__init__()
@@ -185,6 +225,7 @@ class Seeds(Item):
         self.tile = SeedsTile
         self.type = NonToolHandler.Objects.SEEDS
         self.plant = farm.Plant
+        self.required_class = farm.Soil
 
     def use(self):
         globs.gEventHandler.emit("use_non_tool", self)
@@ -212,3 +253,19 @@ class PotatoTile(SeedsTile):
         self.description = "Can be planted for more potatoes"
         self.item = Potato
         self.color = (100,30,10)
+
+class Sappling(Seeds):
+    def __init__(self):
+        super().__init__()
+        self.name = "Sappling"
+        self.description = "A simple tree"
+        self.tile = SapplingTile
+        self.plant = farm.Tree
+        self.required_class = farm.Hole
+
+class SapplingTile(SeedsTile):
+    def __init__(self, x, y):
+        self.name = "Sappling"
+        self.description = "A simple sappling for a tree"
+        self.item = Tree
+        self.color = (0,200,30)

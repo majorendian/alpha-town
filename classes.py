@@ -10,6 +10,8 @@ class Universal(object):
         self.walkable = True
         self.interactible = False
         self.item = None
+        self.drop_on_destroy = None
+        self.drop_on_destroy_count = 0
 
     def save_json(self):
         return {"x": self.x, "y": self.y, "tile": type(self).__name__, "module": self.__module__}
