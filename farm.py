@@ -37,6 +37,7 @@ class Plant(classes.Floor):
                 "state": self.state,
                 "age": self.age,
                 "health": self.health,
+                "symbol": self.symbol,
                 "watered_time": self.watered_time}
 
     def load_json(self, d):
@@ -45,6 +46,7 @@ class Plant(classes.Floor):
         self.state = d["state"]
         self.age = d["age"]
         self.health = d["health"]
+        self.symbol = d["symbol"]
         self.waterd_time = d["watered_time"]
 
     def __init__(self, x, y):
@@ -59,6 +61,11 @@ class Plant(classes.Floor):
         self.health = 100
         self.watered_time = 0
         self.gives_items = [] #can give seeds and produce
+
+
+    def init(self):
+        if self.state == Plant.PlantStates.RIPE:
+            self.symbol = self.ripe_symbol
 
     def update(self, level):
         for obj in level.objects_at(self.x, self.y):

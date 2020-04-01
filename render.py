@@ -1,5 +1,9 @@
 import json
 import classes
+import tcod.noise
+import tcod
+import numpy as np
+import farm
 
 class Map(object):
     def __init__(self, json_file=None):
@@ -14,6 +18,12 @@ class Map(object):
         self.m = self.process(self.parse(json_file))
         self.h = len(self.m)
         self.w = len(self.m[0])
+
+    def new_map(self):
+        self.m, objects = self.generate()
+        self.h = len(self.m)
+        self.w = len(self.m[0])
+        return objects
 
     def set_map(self, parsed_json):
         self.m = self.process(parsed_json)
@@ -48,6 +58,49 @@ class Map(object):
             newmap.append(newr)
             y += 1
         return newmap
+
+    def generate(self):
+        noise = tcod.noise.Noise(
+            dimensions=2,
+            algorithm=tcod.NOISE_SIMPLEX,
+            implementation=tcod.noise.TURBULENCE,
+            hurst=0.9,
+            lacunarity=2.0,
+            octaves=4,
+            seed=None
+            )
+        ogrid = [np.arange(100, dtype=np.int32), np.arange(200, dtype=np.int32)]
+        samples = noise.sample_ogrid(ogrid)
+        samples = samples * 10
+        newmap = []
+        objects = []
+        y = 0
+        for row in samples:
+            x = 0
+            newrow = []
+            for col in row:
+                t = classes.Floor(x, y)
+                if int(col) == 2:
+                    tree = farm.Tree(x,y)
+                    # tree.state = farm.Plant.PlantStates.RIPE
+                    # tree.init()
+                    objects.append(tree)
+                elif int(col) == 9:
+                    t = classes.Grass(x, y)
+                newrow.append(t)
+                x += 1
+            y += 1
+            newmap.append(newrow)
+        return (newmap, objects)
+
+    def serialized(self):
+        m = []
+        for row in self.m:
+            newrow = []
+            for col in row:
+                newrow.append(col.symbol)
+            m.append(newrow)
+        return m
 
 class Renderer(object):
     def __init__(self, tcod_console, width, height):

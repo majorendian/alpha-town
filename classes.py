@@ -27,6 +27,12 @@ class Universal(object):
     def update(self, mapobj):
         pass
 
+    def __repr__(self):
+        return self.symbol
+
+    def __str__(self):
+        return self.__repr__()
+
 class Player(Universal):
     def __init__(self,x,y):
         super().__init__()

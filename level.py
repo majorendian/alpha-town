@@ -79,6 +79,11 @@ class LevelManager(object):
                 newobj.count = obj.drop_on_destroy_count
             self.add_object(newobj)
 
+    def new_level(self):
+        self.filename = ""
+        self.level.objects = self.mapobj.new_map()
+        self.player = classes.Player(int(self.mapobj.w/2),int(self.mapobj.h/2))
+
     def load_level(self, level_json):
         self.filename = level_json
         with open(level_json, "r") as f:
@@ -94,6 +99,7 @@ class LevelManager(object):
             objd = obj.save_json()
             d["objects"].append(objd)
         d["inventory"] = self.inventory.save_json()
+        d["map"] = self.level.mapobj.serialized()
         with open(save_file, "w") as f:
             f.write(json.dumps(d))
 
@@ -103,9 +109,9 @@ class LevelManager(object):
             self.mapobj = render.Map()
             self.level = Level(self.mapobj, [])
             self.filename = d["level"]
-            with open(self.filename) as lf:
-                self.mapobj.set_map(json.load(lf)["map"])
+            self.mapobj.set_map(d["map"])
             self.process_objects(d["objects"], True)
+            self.inventory.items = []
             self.inventory.load_json(d["inventory"])
 
     def get_level(self):

@@ -21,6 +21,7 @@ class GameState:
     class Intro(state.State):
         def __init__(self, fsm):
             super().__init__(fsm)
+            self.fsm.game_continue = False
             with open("intro.ascii","r") as f:
                 self.protag_ascii = f.read()
             items = [menu.MenuItem("New Game", self.new_game), menu.MenuItem("Quit", self.quit_game)]
@@ -34,20 +35,20 @@ class GameState:
             self.menu_controls.emitter.bind(select=self.menu.select)
 
         def new_game(self):
-            gContinue = False
+            self.fsm.game_continue = False
             self.fsm.transition("from_intro_to_game")
 
         def quit_game(self):
             raise SystemExit()
 
         def continue_game(self):
-            gContinue = True
+            self.fsm.game_continue = True
             self.fsm.transition("from_intro_to_game")
 
         def run(self):
             gRootConsole.print(x=0,y=0,string=self.protag_ascii)
             self.menu.render_items()
-            self.menu_controls.handlekeys() 
+            self.menu_controls.handlekeys()
 
     class Game(state.State):
 
@@ -62,16 +63,21 @@ class GameState:
 
         def __init__(self, fsm):
             super().__init__(fsm)
+
+        def enter(self):
             self.r = render.Renderer(gRootConsole, gWidth, gHeight)
             self.help_statusbar = menu.HelpStatusBar(gRootConsole, gWidth, gHeight)
             self.inventory = menu.Inventory(gRootConsole, gWidth, gHeight)
             self.lm = level.LevelManager()
             self.lm.inventory = self.inventory
-            if gContinue:
+            if self.fsm.game_continue:
+                print("LOADING")
                 self.lm.load_save("save.json")
                 self.player = self.lm.player
             else:
-                self.lm.load_level("basic_starter_level.json")
+                print("NEW LEVEL")
+                self.lm.new_level()
+                # self.lm.load_level("basic_starter_level.json")
                 self.player = self.lm.player
                 self.lm.level.objects.append(self.player)
             self.interaction_state = GameState.Game.ControlState.ROAM
@@ -82,7 +88,7 @@ class GameState:
             self.controls.emitter.bind(inventory_open=self.on_inventory_open)
             self.controls.emitter.bind(in_game_menu=self.on_in_game_menu_open)
             self.controls.emitter.bind(pickup_item=self.on_item_pickup)
-            
+
             self.interaction_controls.emitter.bind(interaction_direction=self.on_interaction_direction)
             self.conversation_controls = control.ConversationControls()
 
@@ -194,7 +200,7 @@ class GameState:
                     self.inventory.add_item(i)
                 gEventHandler.emit("object_destroy", obj)
                 self.show_message("Message", [msg])
-                
+
 
         def on_tool_use_direction(self, data):
             print("tool used in vector:", data)
@@ -233,7 +239,7 @@ class GameState:
             self.text_window.on_confirm()
             self.conversation_controls.emitter.bind(confirm=self.text_window.on_confirm)
             self.text_window.emitter.bind(close=self.on_text_window_close)
-            
+
 
         def on_in_game_menu_open(self):
             def __save_game_item__():
