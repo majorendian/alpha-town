@@ -164,6 +164,27 @@ class SimpleCraftingControls(MenuControls):
         super().__init__()
         self.emitter = SimpleCraftingControlsEmitter()
 
+class SimpleCraftingSubmenuEmitter(Dispatcher):
+    _events_ = ["move_left", "move_right", "cancel", "select"]
+
+class SimpleCraftingSubmenuControls(object):
+    def __init__(self):
+        self.emitter = SimpleCraftingSubmenuEmitter()
+
+    def handlekeys(self):
+        for event in tcod.event.wait():
+            if event.type == "QUIT":
+                raise SystemExit()
+            elif event.type == "KEYDOWN":
+                if event.scancode == tcod.event.SCANCODE_LEFT:
+                    self.emitter.emit("move_left")
+                elif event.scancode == tcod.event.SCANCODE_RIGHT:
+                    self.emitter.emit("move_right")
+                elif event.scancode == tcod.event.SCANCODE_ESCAPE:
+                    self.emitter.emit("cancel")
+                elif event.scancode == tcod.event.SCANCODE_SPACE:
+                    self.emitter.emit("select")
+
 class InventoryControlsEmitter(MenuControlsEmitter):
     _events_ = ["move_down", "move_up", "cancel", "select", "drop"]
 

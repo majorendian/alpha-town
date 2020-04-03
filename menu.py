@@ -115,9 +115,61 @@ class SimpleCraftingMenu(Menu):
         ]
 
     def select(self):
-        print("selected a recipie:", self.items[self.cursor_index])
-        print("this is our inventory:", self.inventory.items)
+        globs.gEventHandler.emit("simple_crafting_submenu_open", self.items[self.cursor_index])
+    # def select(self):
+    #     selected_recipe = self.items[self.cursor_index]
+    #     requirement = {}
+    #     for rid in selected_recipe.required_items:
+    #         requirement[rid["item"]] = { "available" : False, "count" : rid["count"] }
+    #     print(requirement)
+    #     for available_item in self.inventory.items:
+    #         for rk in requirement.keys():
+    #             if isinstance(available_item, rk) and available_item.count >= requirement[rk]["count"]:
+    #                 requirement[rk]["available"] = True
+    #     #validate if all requirements are met
+    #     can_craft = True
+    #     for rk in requirement.keys():
+    #         if not requirement[rk]["available"]:
+    #             can_craft = False
 
+    #     print("Can we craft selected item?:",can_craft)
+
+class SimpleCraftingSubMenu(object):
+    def __init__(self, recipie, root_console, inventory, width, height):
+        self.recipie = recipie
+        self.console = root_console
+        self.w = width
+        self.h = height
+        self.craft = False
+        pass #TODO: Move the code from select in SimpleCraftingMenu to somewhere here and make a submenu showing all the items required
+
+    def render(self):
+        self.console.draw_frame(x=0,y=int(self.h-self.h/4),width=self.w, height=int(self.h/4), title=self.recipie.name + " Recipie", fg=(255,255,255), bg=(0,0,0))
+        y = 1
+        for material_d in self.recipie.required_items:
+            self.console.print(x=1, y=int((self.h-self.h/4) + y), string=material_d["item"].__name__ + "   x" + str(material_d["count"]))
+            y += 1
+        self.console.print(x=int(self.w/2)-35, y=int((self.h-2)), string="Craft")
+        self.console.print(x=int(self.w/2)+20, y=int((self.h-2)), string="Cancel")
+        if self.craft:
+            self.console.print(x=int(self.w/2)-37, y=int(self.h-2), string="> Craft", fg=(0,0,255))
+        else:
+            self.console.print(x=int(self.w/2)+18, y=int(self.h-2), string="> Cancel", fg=(0,0,255))
+            
+            
+    def move_left(self):
+        self.craft = True
+        self.render()
+
+    def move_right(self):
+        self.craft = False
+        self.render()
+
+    def cancel(self):
+        pass
+
+    def select(self):
+        pass
 
 class Inventory(Menu):
     def __init__(self, root_console, width, height):
