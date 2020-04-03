@@ -2,6 +2,7 @@ from pydispatch import Dispatcher
 import item
 import globs
 import sys
+import recipie
 
 class HelpStatusBar(object):
     def __init__(self, tcod_console, width, height):
@@ -102,6 +103,21 @@ class Menu(object):
         item = self.items[self.cursor_index]
         print("selected item:",item)
         item.execute()
+
+
+class SimpleCraftingMenu(Menu):
+    def __init__(self, root_console, inventory, width, height):
+        super().__init__(root_console, width, height)
+        self.title = "Crafting"
+        self.inventory = inventory
+        self.items = [
+            recipie.WoodenWallRecipie()
+        ]
+
+    def select(self):
+        print("selected a recipie:", self.items[self.cursor_index])
+        print("this is our inventory:", self.inventory.items)
+
 
 class Inventory(Menu):
     def __init__(self, root_console, width, height):

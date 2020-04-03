@@ -4,7 +4,7 @@ import globs
 from pydispatch import Dispatcher
 
 class MainControlsEmitter(Dispatcher):
-    _events_ = ["interaction", "inventory_open", "in_game_menu", "pickup_item"]
+    _events_ = ["interaction", "inventory_open", "in_game_menu", "pickup_item", "simple_crafting_menu"]
 
 class MainControls(object):
     def __init__(self, player, renderer, level):
@@ -44,6 +44,8 @@ class MainControls(object):
                     self.emitter.emit("in_game_menu")
                 elif event.scancode == tcod.event.SCANCODE_U:
                     globs.gEventHandler.emit("use_tool")
+                elif event.scancode == tcod.event.SCANCODE_C:
+                    self.emitter.emit("simple_crafting_menu")
                 elif event.scancode == tcod.event.SCANCODE_G:
                     obj = self.level.check_item(self.player.x, self.player.y) or self.level.check_plant(self.player.x, self.player.y)
                     if obj:
@@ -153,6 +155,14 @@ class MenuControls(object):
                     self.emitter.emit("cancel")
                 elif event.scancode == tcod.event.SCANCODE_SPACE:
                     self.emitter.emit("select")
+
+class SimpleCraftingControlsEmitter(MenuControlsEmitter):
+    pass
+
+class SimpleCraftingControls(MenuControls):
+    def __init__(self):
+        super().__init__()
+        self.emitter = SimpleCraftingControlsEmitter()
 
 class InventoryControlsEmitter(MenuControlsEmitter):
     _events_ = ["move_down", "move_up", "cancel", "select", "drop"]

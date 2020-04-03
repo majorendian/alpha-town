@@ -60,6 +60,7 @@ class GameState:
             MENU = auto()
             TOOL = auto()
             NONTOOL = auto()
+            SIMPLE_CRAFTING = auto()
 
         def __init__(self, fsm):
             super().__init__(fsm)
@@ -88,6 +89,7 @@ class GameState:
             self.controls.emitter.bind(inventory_open=self.on_inventory_open)
             self.controls.emitter.bind(in_game_menu=self.on_in_game_menu_open)
             self.controls.emitter.bind(pickup_item=self.on_item_pickup)
+            self.controls.emitter.bind(simple_crafting_menu=self.on_simple_crafting_menu)
 
             self.interaction_controls.emitter.bind(interaction_direction=self.on_interaction_direction)
             self.conversation_controls = control.ConversationControls()
@@ -116,6 +118,10 @@ class GameState:
             self.menu_controls = control.MenuControls()
             self.in_game_menu = None # needs to be none just like for the text window
 
+            #crafting menu
+            self.simple_crafting_controls = control.SimpleCraftingControls()
+            self.simple_crafting_menu = None
+
             #global events
             self.tool_handler = item.ToolHandler(self.player, self.lm.level)
             # gEventHandler.bind("inventory_item_close", self.on_inventory_close)
@@ -126,6 +132,20 @@ class GameState:
             gEventHandler.bind("interact_description", self.interact_description)
             gEventHandler.bind("interact_npc", self.interact_npc)
             gEventHandler.bind("interact_door", self.interact_door)
+
+        def on_simple_crafting_menu(self):
+            self.interaction_state = GameState.Game.ControlState.SIMPLE_CRAFTING
+            self.simple_crafting_menu = menu.SimpleCraftingMenu(gRootConsole, self.inventory, gWidth, gHeight)
+            self.simple_crafting_controls.emitter.bind(move_down=self.simple_crafting_menu.move_down)
+            self.simple_crafting_controls.emitter.bind(move_up=self.simple_crafting_menu.move_up)
+            self.simple_crafting_controls.emitter.bind(cancel=self.cancel_simple_crafting)
+            self.simple_crafting_controls.emitter.bind(select=self.simple_crafting_menu.select)
+            self.simple_crafting_menu.render_items()
+            
+        def cancel_simple_crafting(self):
+            self.interaction_state = GameState.Game.ControlState.ROAM
+            self.simple_crafting_menu = None # free up crafting menu space
+            
 
         def on_nontool_use(self, obj=None):
             print("using nontool:",obj)
@@ -293,6 +313,8 @@ class GameState:
                 self.tool_controls.handlekeys()
             elif self.interaction_state == GameState.Game.ControlState.NONTOOL:
                 self.nontool_controls.handlekeys()
+            elif self.interaction_state == GameState.Game.ControlState.SIMPLE_CRAFTING:
+                self.simple_crafting_controls.handlekeys()
 
             obj = self.lm.level.check_item(self.player.x, self.player.y) or self.lm.level.check_plant(self.player.x, self.player.y)
             if obj:
