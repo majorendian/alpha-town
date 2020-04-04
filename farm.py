@@ -30,19 +30,15 @@ class Plant(classes.Floor):
         DEAD = "DEAD"
 
     def save_json(self):
-        return {"x": self.x,
-                "y": self.y,
-                "tile": type(self).__name__,
-                "module": self.__module__,
-                "state": self.state,
-                "age": self.age,
-                "health": self.health,
-                "symbol": self.symbol,
-                "watered_time": self.watered_time}
+        d = super().save_json()
+        d["state"] = self.state
+        d["age"] = self.age
+        d["health"]= self.health
+        d["symbol"]= self.symbol
+        d["watered_time"] = self.watered_time
 
     def load_json(self, d):
-        self.x = d["x"]
-        self.y = d["y"]
+        super().load_json(d)
         self.state = d["state"]
         self.age = d["age"]
         self.health = d["health"]
@@ -55,7 +51,7 @@ class Plant(classes.Floor):
         self.name = "Plant"
         self.ripe_symbol = "F"
         self.color = (0,128,0)
-        self.state = Plant.PlantStates.RIPE
+        self.state = Plant.PlantStates.DRY
         self.age = 0
         self.ripe_age = 100
         self.health = 100

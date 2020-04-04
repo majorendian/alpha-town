@@ -12,13 +12,15 @@ class Universal(object):
         self.item = None
         self.drop_on_destroy = None
         self.drop_on_destroy_count = 0
+        self.updatable = True
 
     def save_json(self):
-        return {"x": self.x, "y": self.y, "tile": type(self).__name__, "module": self.__module__}
+        return {"x": self.x, "y": self.y, "tile": type(self).__name__, "module": self.__module__, "updateable" : self.updateable}
 
     def load_json(self, d):
         self.x = d["x"]
         self.y = d["y"]
+        self.updateable = d["updateable"]
         print("loaded obj",self)
 
     def draw(self):
@@ -166,6 +168,11 @@ class Wall(Tile):
         super().__init__(x, y)
         self.symbol = "#"
         self.walkable = False
+
+class WoodenWall(Wall):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.color = (200,100,10)
 
 class Floor(Tile):
     def __init__(self, x, y):

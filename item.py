@@ -119,8 +119,8 @@ class NonToolHandler(object):
             if isinstance(obj, self.obj.required_class):
                 self.obj.count -= 1
                 globs.gEventHandler.emit("object_destroy", obj)
-                obj = self.obj.plant(obj.x, obj.y)
-                globs.gEventHandler.emit("add_object", obj)
+                plant = self.obj.plant(obj.x, obj.y)
+                globs.gEventHandler.emit("add_object", plant)
                 found_soil = True
         if not found_soil:
             error = True
@@ -128,7 +128,19 @@ class NonToolHandler(object):
         return (error, msg)
 
     def furniture(self, vector):
-        print("placing furniture:",self.obj)
+        print("using furniture",self.obj)
+        objects = self.level.objects_at(self.player.x+vector[0], self.player.y+vector[1])
+        error = False
+        msg = ""
+        if self.obj.count <= 0:
+            return (True, "No more " + self.obj.name +" left")
+        if len(objects) == 0:
+            self.obj.count -= 1
+            globs.gEventHandler.emit("add_object", self.obj.tile(self.player.x+vector[0], self.player.y+vector[1]))
+        else:
+            error = True
+            msg = "An object is in the way of placing this item"
+        return (error, msg)
         
 class Tool(Item):
     def __init__(self):
@@ -216,6 +228,25 @@ class WoodTile(ItemTile):
         self.item = Wood
         self.symbol = "w"
         self.color = (200,20,10)
+
+class Furniture(Item):
+    def __init__(self):
+        super().__init__()
+        self.name = "Default furniture"
+        self.description = "Default description"
+        self.tile = None
+        self.type = NonToolHandler.Objects.FURNITURE
+
+    def use(self):
+        globs.gEventHandler.emit("use_non_tool", self)
+
+class WoodenWall(Furniture):
+    def __init__(self):
+        super().__init__()
+        self.name = "Wooden Wall"
+        self.description = "A sturdy wooden wall"
+        self.tile = classes.WoodenWall
+
     
 class Seeds(Item):
     def __init__(self):
@@ -229,6 +260,7 @@ class Seeds(Item):
 
     def use(self):
         globs.gEventHandler.emit("use_non_tool", self)
+
 
 class SeedsTile(ItemTile):
     def __init__(self, x, y):

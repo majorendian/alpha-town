@@ -14,6 +14,7 @@ import menu
 import item
 import farm
 import os.path
+import threading
 
 gRootConsole = None # just so that we can reference it inside the classes
 # Basic states of the game
@@ -69,6 +70,10 @@ class GameState:
         def enter(self):
             self.r = render.Renderer(gRootConsole, gWidth, gHeight)
             self.help_statusbar = menu.HelpStatusBar(gRootConsole, gWidth, gHeight)
+
+            #clears the status bar after 10 seconds
+            self.help_statusbar_timer = None
+            
             self.inventory = menu.Inventory(gRootConsole, gWidth, gHeight)
             self.lm = level.LevelManager()
             self.lm.inventory = self.inventory
@@ -139,10 +144,11 @@ class GameState:
 
             # Crafting submenu
             gEventHandler.bind("simple_crafting_submenu_open", self.on_simple_crafting_submenu_open)
+            gEventHandler.bind("simple_crafting_craft", self.on_simple_crafting_craft)
 
         def on_simple_crafting_menu(self):
             self.interaction_state = GameState.Game.ControlState.SIMPLE_CRAFTING
-            self.simple_crafting_menu = menu.SimpleCraftingMenu(gRootConsole, self.inventory, gWidth, gHeight)
+            self.simple_crafting_menu = menu.SimpleCraftingMenu(gRootConsole, gWidth, gHeight)
             self.simple_crafting_controls.emitter.bind(move_down=self.simple_crafting_menu.move_down)
             self.simple_crafting_controls.emitter.bind(move_up=self.simple_crafting_menu.move_up)
             self.simple_crafting_controls.emitter.bind(cancel=self.cancel_simple_crafting)
@@ -158,9 +164,34 @@ class GameState:
             self.simple_crafting_submenu = menu.SimpleCraftingSubMenu(selected_item, gRootConsole, self.inventory, gWidth, gHeight)
             self.simple_crafting_submenu_controls.emitter.bind(move_left=self.simple_crafting_submenu.move_left)
             self.simple_crafting_submenu_controls.emitter.bind(move_right=self.simple_crafting_submenu.move_right)
-            self.simple_crafting_submenu_controls.emitter.bind(cancel=self.simple_crafting_submenu.cancel)
             self.simple_crafting_submenu_controls.emitter.bind(select=self.simple_crafting_submenu.select)
             self.simple_crafting_submenu.render()
+
+        def on_simple_crafting_craft(self, craft, can_craft, recipie):
+            if can_craft and craft:
+                newitem = recipie.gives_item()
+                for ritem in recipie.required_items:
+                    for invitem in self.inventory.items:
+                        if isinstance(invitem, ritem["item"]):
+                            invitem.count -= ritem["count"]
+                self.inventory.update_inventory()
+                self.inventory.add_item(newitem)
+                self.help_statusbar.set_text("Item " + newitem.name + " crafted")
+
+                self.help_statusbar_timer = threading.Timer(2, self.help_statusbar.clear_text)
+                self.help_statusbar_timer.start()
+                # self.show_message("Message", ["Item " + newitem.name + " crafted"])
+                # self.interaction_state = GameState.Game.ControlState.SIMPLE_CRAFTING_SUBMENU
+
+            elif not can_craft and craft:
+                self.show_message("Message", ["Not enough materials to craft this item"])
+            elif not craft:
+                self.on_simple_crafting_submenu_cancel()
+
+        def on_simple_crafting_submenu_cancel(self):
+            self.render()
+            self.simple_crafting_menu.render_items()
+            self.interaction_state = GameState.Game.ControlState.SIMPLE_CRAFTING
 
         def on_nontool_use(self, obj=None):
             print("using nontool:",obj)
@@ -344,7 +375,8 @@ class GameState:
         def update(self):
             if self.interaction_state == GameState.Game.ControlState.ROAM:
                 for o in self.lm.level.objects:
-                    o.update(self.lm.level)
+                    if o.updatable:
+                        o.update(self.lm.level)
 
         def draw(self):
             if self.interaction_state == GameState.Game.ControlState.ROAM:

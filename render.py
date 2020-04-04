@@ -82,8 +82,8 @@ class Map(object):
                 t = classes.Floor(x, y)
                 if int(col) == 2:
                     tree = farm.Tree(x,y)
-                    # tree.state = farm.Plant.PlantStates.RIPE
-                    # tree.init()
+                    tree.state = farm.Plant.PlantStates.RIPE
+                    tree.init()
                     objects.append(tree)
                 elif int(col) == 9:
                     t = classes.Grass(x, y)
